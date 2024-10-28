@@ -12,11 +12,9 @@
     <style>
         /* Base Styles */
       :root {
-    --dark: #331e31;
+     --dark: #331e31;
     --pink: #ff1c62;
     --blue: #4be4f0;
-      --transition-quick: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    --transition-fancy: 0.8s cubic-bezier(0.22, 1, 0.36, 1);
     --font-heading: 'Italiana', serif;
     --font-body: 'Montserrat', sans-serif;
 }
@@ -228,27 +226,72 @@
             font-weight: 300;
             opacity: 0.9;
         }
+/* Service Cards Animation Fix */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 4rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
 
-        /* Services Section */
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 4rem;
-        }
+.services-grid.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
 
-        .service-card {
-            background: white;
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            transition: var(--transition-smooth);
-            position: relative;
-        }
+.service-card {
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(20px);
+}
 
-        .service-card:hover {
-            transform: translateY(-10px);
-        }
+.service-card.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.service-image {
+    height: 250px;
+    overflow: hidden;
+    background: #f5f5f5;
+    position: relative;
+}
+
+.service-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, #f5f5f5 0%, #efefef 50%, #f5f5f5 100%);
+    animation: shimmer 1.5s infinite linear;
+    transform: translateX(-100%);
+}
+
+.service-image.loaded::before {
+    display: none;
+}
+
+.service-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.service-image.loaded img {
+    opacity: 1;
+}
+
 
         .service-image {
             height: 250px;
@@ -262,10 +305,7 @@
             transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .service-card:hover .service-image img {
-            transform: scale(1.1);
-        }
-
+      
         .service-content {
             padding: 2rem;
         }
@@ -817,56 +857,7 @@ padding: 0 1rem;
     padding: 1.5rem;
 }
 }
-/* Animations */
-@keyframes fadeInUp {
-from {
-opacity: 0;
-transform: translateY(30px);
-}
-to {
-opacity: 1;
-transform: translateY(0);
-}
-}
-@keyframes scaleIn {
-from {
-opacity: 0;
-transform: scale(0.95);
-}
-to {
-opacity: 1;
-transform: scale(1);
-}
-}
-@keyframes slideIn {
-from {
-opacity: 0;
-transform: translateX(-30px);
-}
-to {
-opacity: 1;
-transform: translateX(0);
-}
-}
-@keyframes float {
-0%, 100% {
-transform: translateY(0);
-}
-50% {
-transform: translateY(-20px);
-}
-}
-@keyframes pulse {
-0% {
-box-shadow: 0 0 0 0 rgba(255, 28, 98, 0.4);
-}
-70% {
-box-shadow: 0 0 0 20px rgba(255, 28, 98, 0);
-}
-100% {
-box-shadow: 0 0 0 0 rgba(255, 28, 98, 0);
-}
-}
+
 /* Custom Cursor */
 .cursor {
 width: 20px;
@@ -894,16 +885,6 @@ height: 50px;
 border-width: 1px;
 border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
 animation: cursor-hover 2s infinite;
-}
-@keyframes cursor-hover {
-0% {
-border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-}
-50% {
-border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
-}
-100% {
-border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
 }
 }
 /* Loading Animation */
@@ -1488,89 +1469,7 @@ transition: box-shadow 0.3s ease;
 outline: none;
 box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
 }
-/* Instant reveal animations */
-[data-scroll] {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s var(--transition-quick),
-                transform 0.5s var(--transition-fancy);
-    will-change: transform, opacity;
-}
 
-[data-scroll].in-view {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Snappy service cards */
-.service-card {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: all 0.6s var(--transition-fancy),
-                box-shadow 0.4s var(--transition-quick);
-    will-change: transform, opacity, box-shadow;
-}
-
-.service-card.in-view {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.service-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.1),
-        0 15px 25px rgba(255, 28, 98, 0.08);
-}
-
-/* Quick image reactions */
-.service-image img {
-    transition: transform 0.8s var(--transition-fancy);
-    will-change: transform;
-}
-
-.service-card:hover .service-image img {
-    transform: scale(1.05);
-}
-
-/* Instant value cards */
-.value-card {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.5s var(--transition-fancy);
-}
-
-.value-card.in-view {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Instant section headers */
-.section-header {
-    opacity: 0;
-    transform: translateY(15px);
-    transition: all 0.5s var(--transition-quick);
-}
-
-.section-header.in-view {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Quick hover states */
-.btn-primary {
-    transition: all 0.4s var(--transition-quick);
-}
-
-.btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(255, 28, 98, 0.2);
-}
-
-/* Smooth scroll */
-html {
-    scroll-behavior: smooth;
-}
 
 </style>
 <body class="loading">
@@ -1601,108 +1500,160 @@ html {
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
-            <h1 data-scroll>Transforming Home Services</h1>
-            <p class="hero-tagline" data-scroll>Experience premium home care with our comprehensive range of personalized services</p>
-            <div class="hero-buttons" data-scroll>
+            <h1>Transforming Home Services</h1>
+            <p class="hero-tagline" >Experience premium home care with our comprehensive range of personalized services</p>
+            <div class="hero-buttons" >
                 <button class="btn-primary">Explore Services</button>
             </div>
         </div>
     </section>
-
-    <!-- Services Section -->
-    <section id="services" class="section">
-        <div class="container">
-            <div class="section-header-black" data-scroll>
-                <h2>Our Premium Services</h2>
-                <p>Discover our comprehensive range of personalized home services tailored to your needs</p>
+<!-- Services Section -->
+<section id="services" class="section">
+    <div class="container">
+        <div class="section-header-black" >
+            <h2>Our Premium Services</h2>
+            <p>Discover our comprehensive range of personalized home services tailored to your needs</p>
+        </div>
+        <div class="services-grid">
+            <!-- Get Cooked Service -->
+            <div class="service-card" >
+                <div class="service-image-wrapper">
+                    <div class="service-image-placeholder">
+                        <div class="loading-spinner"></div>
+                    </div>
+                    <div class="service-image">
+                        <img 
+                            src="https://images.unsplash.com/photo-1556910103-1c02745aae4d" 
+                            alt="Professional Cooking Service"
+                            loading="eager"
+                        >
+                    </div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Get Cooked</h3>
+                    <p class="service-description">Personalized cooking services tailored to your dietary needs and preferences, delivered with excellence.</p>
+                    <span class="service-price">From $150</span>
+                    <a href="#" class="service-link">Learn More →</a>
+                </div>
             </div>
-            <div class="services-grid">
-                <!-- Get Cooked Service -->
-                <div class="service-card" data-scroll>
-                    <div class="service-image">
-                        <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d" alt="Professional Cooking Service">
+
+            <!-- NDIS Support Work -->
+            <div class="service-card" >
+                <div class="service-image-wrapper">
+                    <div class="service-image-placeholder">
+                        <div class="loading-spinner"></div>
                     </div>
-                    <div class="service-content">
-                        <h3 class="service-title">Get Cooked</h3>
-                        <p class="service-description">Personalized cooking services tailored to your dietary needs and preferences, delivered with excellence.</p>
-                        <span class="service-price">From $150</span>
-                        <a href="#" class="service-link">Learn More →</a>
+                    <div class="service-image">
+                        <img 
+                            src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289" 
+                            alt="NDIS Support Services"
+                            loading="eager"
+                        >
                     </div>
                 </div>
+                <div class="service-content">
+                    <h3 class="service-title">NDIS Support Work</h3>
+                    <p class="service-description">Comprehensive support services under NDIS, focusing on personalized care and assistance.</p>
+                    <span class="service-price">Custom Pricing</span>
+                    <a href="#" class="service-link">Learn More →</a>
+                </div>
+            </div>
 
-                <!-- NDIS Support Work -->
-                <div class="service-card" data-scroll>
-                    <div class="service-image">
-                        <img src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289" alt="NDIS Support Services">
+            <!-- IT Support -->
+            <div class="service-card" >
+                <div class="service-image-wrapper">
+                    <div class="service-image-placeholder">
+                        <div class="loading-spinner"></div>
                     </div>
-                    <div class="service-content">
-                        <h3 class="service-title">NDIS Support Work</h3>
-                        <p class="service-description">Comprehensive support services under NDIS, focusing on personalized care and assistance.</p>
-                        <span class="service-price">Custom Pricing</span>
-                        <a href="#" class="service-link">Learn More →</a>
+                    <div class="service-image">
+                        <img 
+                            src="https://images.unsplash.com/photo-1531297484001-80022131f5a1" 
+                            alt="IT Support Services"
+                            loading="eager"
+                        >
                     </div>
                 </div>
+                <div class="service-content">
+                    <h3 class="service-title">IT Support</h3>
+                    <p class="service-description">Expert technical support for all your home IT systems, from setup to maintenance.</p>
+                    <span class="service-price">From $100</span>
+                    <a href="#" class="service-link">Learn More →</a>
+                </div>
+            </div>
 
-                <!-- IT Support -->
-                <div class="service-card" data-scroll>
-                    <div class="service-image">
-                        <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1" alt="IT Support Services">
+            <!-- Customized Meal Prep -->
+            <div class="service-card">
+                <div class="service-image-wrapper">
+                    <div class="service-image-placeholder">
+                        <div class="loading-spinner"></div>
                     </div>
-                    <div class="service-content">
-                        <h3 class="service-title">IT Support</h3>
-                        <p class="service-description">Expert technical support for all your home IT systems, from setup to maintenance.</p>
-                        <span class="service-price">From $100</span>
-                        <a href="#" class="service-link">Learn More →</a>
+                    <div class="service-image">
+                        <img 
+                            src="https://images.unsplash.com/photo-1547592180-85f173990554" 
+                            alt="Meal Preparation Service"
+                            loading="eager"
+                        >
                     </div>
                 </div>
+                <div class="service-content">
+                    <h3 class="service-title">Customized Meal Prep</h3>
+                    <p class="service-description">Tailored meal preparation services suited to your dietary requirements and lifestyle.</p>
+                    <span class="service-price">From $200/week</span>
+                    <a href="#" class="service-link">Learn More →</a>
+                </div>
+            </div>
 
-                <!-- Customized Meal Prep -->
-                <div class="service-card" data-scroll>
-                    <div class="service-image">
-                        <img src="https://images.unsplash.com/photo-1547592180-85f173990554" alt="Meal Preparation Service">
+            <!-- Home Essentials Consultation -->
+            <div class="service-card" >
+                <div class="service-image-wrapper">
+                    <div class="service-image-placeholder">
+                        <div class="loading-spinner"></div>
                     </div>
-                    <div class="service-content">
-                        <h3 class="service-title">Customized Meal Prep</h3>
-                        <p class="service-description">Tailored meal preparation services suited to your dietary requirements and lifestyle.</p>
-                        <span class="service-price">From $200/week</span>
-                        <a href="#" class="service-link">Learn More →</a>
+                    <div class="service-image">
+                        <img 
+                            src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6" 
+                            alt="Home Consultation"
+                            loading="eager"
+                        >
                     </div>
                 </div>
+                <div class="service-content">
+                    <h3 class="service-title">Home Essentials Consultation</h3>
+                    <p class="service-description">Expert advice on home security, comfort, and functionality improvements.</p>
+                    <span class="service-price">From $250</span>
+                    <a href="#" class="service-link">Learn More →</a>
+                </div>
+            </div>
 
-                <!-- Home Essentials Consultation -->
-                <div class="service-card" data-scroll>
-                    <div class="service-image">
-                        <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6" alt="Home Consultation">
+            <!-- Additional Services -->
+            <div class="service-card" >
+                <div class="service-image-wrapper">
+                    <div class="service-image-placeholder">
+                        <div class="loading-spinner"></div>
                     </div>
-                    <div class="service-content">
-                        <h3 class="service-title">Home Essentials Consultation</h3>
-                        <p class="service-description">Expert advice on home security, comfort, and functionality improvements.</p>
-                        <span class="service-price">From $250</span>
-                        <a href="#" class="service-link">Learn More →</a>
+                    <div class="service-image">
+                        <img 
+                            src="https://images.unsplash.com/photo-1521791136064-7986c2920216" 
+                            alt="Additional Services"
+                            loading="eager"
+                        >
                     </div>
                 </div>
-
-                <!-- Additional Services -->
-                <div class="service-card" data-scroll>
-                    <div class="service-image">
-                        <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216" alt="Additional Services">
-                    </div>
-                    <div class="service-content">
-                        <h3 class="service-title">Additional Services</h3>
-                        <p class="service-description">From handyman services to executive administration and family advocacy.</p>
-                        <span class="service-price">Custom Pricing</span>
-                        <a href="#" class="service-link">Learn More →</a>
-                    </div>
+                <div class="service-content">
+                    <h3 class="service-title">Additional Services</h3>
+                    <p class="service-description">From handyman services to executive administration and family advocacy.</p>
+                    <span class="service-price">Custom Pricing</span>
+                    <a href="#" class="service-link">Learn More →</a>
                 </div>
             </div>
         </div>
-    </section>
-
+    </div>
+</section>
     <!-- About Section -->
     <section id="about" class="section">
         <div class="container">
             <div class="about-grid">
-                <div class="about-content" data-scroll>
+                <div class="about-content" >
                     <h2>About Urban Core Essentials</h2>
                     <p>With extensive qualifications and experience in various fields, we deliver premium home services that transform living spaces and enhance daily life.</p>
                     <div class="qualification-grid">
@@ -1728,7 +1679,7 @@ html {
                         </div>
                     </div>
                 </div>
-                <div class="about-image" data-scroll>
+                <div class="about-image" >
                     <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c" alt="Premium Service Experience">
                 </div>
             </div>
@@ -1738,33 +1689,33 @@ html {
     <!-- Values Section -->
     <section id="values" class="section values">
         <div class="container">
-            <div class="section-header" data-scroll>
+            <div class="section-header" >
                 <h2>Our Core Values</h2>
                 <p>The principles that guide our premium service delivery</p>
             </div>
             <div class="values-grid">
-                <div class="value-card" data-scroll>
+                <div class="value-card" >
                     <div class="value-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
                     <h3 class="value-title">Security</h3>
                     <p class="value-description">Ensuring safety, protection, and peace of mind for every homeowner.</p>
                 </div>
-                <div class="value-card" data-scroll>
+                <div class="value-card" >
                     <div class="value-icon">
                         <i class="fas fa-cog"></i>
                     </div>
                     <h3 class="value-title">Confidence in Operation</h3>
                     <p class="value-description">Delivering reliable, seamless functionality and expert solutions.</p>
                 </div>
-                <div class="value-card" data-scroll>
+                <div class="value-card" >
                     <div class="value-icon">
                         <i class="fas fa-home"></i>
                     </div>
                     <h3 class="value-title">Comfort</h3>
                     <p class="value-description">Creating cozy, welcoming environments tailored to personal preferences.</p>
                 </div>
-                <div class="value-card" data-scroll>
+                <div class="value-card" >
                     <div class="value-icon">
                         <i class="fas fa-clock"></i>
                     </div>
@@ -1778,20 +1729,20 @@ html {
     <!-- Service Area Section -->
     <section id="service-area" class="section">
         <div class="container">
-            <div class="section-header-black" data-scroll>
+            <div class="section-header-black" >
                 <h2>Service Areas</h2>
                 <p>Serving Sydney's premium locations with excellence</p>
             </div>
             <div class="service-areas-grid">
-                <div class="area-card" data-scroll>
+                <div class="area-card" >
                     <img src="https://images.unsplash.com/photo-1523428096881-5bd79d043006" alt="Sydney CBD">
                     <h3>Sydney CBD</h3>
                 </div>
-                <div class="area-card" data-scroll>
+                <div class="area-card" >
                     <img src="https://images.unsplash.com/photo-1528072164453-f4e8ef0d475a" alt="Eastern Suburbs">
                     <h3>Eastern Suburbs</h3>
                 </div>
-                <div class="area-card" data-scroll>
+                <div class="area-card" >
                     <img src="https://images.unsplash.com/photo-1571407509209-73c3c5551220" alt="Inner West">
                     <h3>Inner West</h3>
                 </div>
@@ -1803,7 +1754,7 @@ html {
     <section id="contact" class="section">
         <div class="container">
             <div class="contact-grid">
-                <div class="contact-info" data-scroll>
+                <div class="contact-info" >
                     <h2>Get in Touch</h2>
                     <p>Ready to experience premium home services? Contact us today.</p>
                     <div class="contact-details">
@@ -1836,7 +1787,7 @@ html {
                         </div>
                     </div>
                 </div>
-                <form class="contact-form" data-scroll>
+                <form class="contact-form" >
                     <div class="form-group">
                         <label class="form-label">Name</label>
                         <input type="text" class="form-input" required>
@@ -1933,11 +1884,21 @@ html {
 <div class="mobile-menu-overlay"></div>
 </body>
 </html>
-<script>// Simple selectors
+<script>
+// Utility functions with better performance
 const $ = selector => document.querySelector(selector);
 const $$ = selector => document.querySelectorAll(selector);
 
-// Simplified RAF
+// Performance-optimized debounce
+const debounce = (fn, wait = 10) => {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn.apply(this, args), wait);
+    };
+};
+
+// Optimized RAF for smoother animations
 const RAF = {
     elements: new Set(),
     update() {
@@ -1953,6 +1914,7 @@ const RAF = {
     }
 };
 
+// Fast loading screen
 class LoadingScreen {
     constructor() {
         this.screen = $('.loading-screen');
@@ -1961,75 +1923,50 @@ class LoadingScreen {
     }
 
     init() {
-        // Wait for all images to load
-        const images = document.querySelectorAll('img');
-        let loadedImages = 0;
-
-        images.forEach(img => {
-            if (img.complete) {
-                loadedImages++;
-            } else {
-                img.addEventListener('load', () => {
-                    loadedImages++;
-                    if (loadedImages === images.length) {
-                        this.remove();
-                    }
-                });
-            }
-        });
-
-        // Fallback in case some images fail to load
-        setTimeout(() => this.remove(), 2000);
+        // Force remove loading screen after 1.5s
+        setTimeout(() => this.remove(), 1500);
+        window.addEventListener('load', () => this.remove());
     }
 
     remove() {
         if (!this.screen || this.screen.classList.contains('loaded')) return;
         this.screen.classList.add('loaded');
         document.body.classList.remove('loading');
-        
-        // Longer fade-out for smoother transition
-        setTimeout(() => this.screen?.remove(), 500);
+        setTimeout(() => this.screen?.remove(), 300);
     }
 }
+
 class ScrollReveal {
     constructor() {
-        this.items = $$('[data-scroll]');
+        this.items = $$('[]');
         this.observer = new IntersectionObserver(
             entries => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting || entry.intersectionRatio > 0) {
-                        // Instantly start animation when even 1% is visible
-                        requestAnimationFrame(() => {
-                            entry.target.classList.add('in-view');
-                        });
+                    // Show as soon as even 1px is visible
+                    if (entry.intersectionRatio > 0) {
+                        // Force immediate display
+                        entry.target.classList.add('in-view');
+                        // Stop observing
                         this.observer.unobserve(entry.target);
                     }
                 });
-            }, 
+            },
             {
-                // Key changes for instant reaction:
-                threshold: 0, // React to any visibility
-                rootMargin: '0px 0px -10% 0px' // Trigger slightly before element comes into view
+                // Show content earlier
+                rootMargin: '50px 0px -10% 0px',
+                threshold: 0
             }
         );
+        
+        // Initialize immediately
         this.init();
     }
 
     init() {
-        this.items.forEach(item => {
-            // Check if already in viewport
-            const rect = item.getBoundingClientRect();
-            if (rect.top < window.innerHeight) {
-                requestAnimationFrame(() => {
-                    item.classList.add('in-view');
-                });
-            } else {
-                this.observer.observe(item);
-            }
-        });
+        this.items.forEach(item => this.observer.observe(item));
     }
 }
-// Fast custom cursor - immediate response
+// Enhanced custom cursor
 class CustomCursor {
     constructor() {
         this.cursor = document.createElement('div');
@@ -2037,7 +1974,7 @@ class CustomCursor {
         this.cursor.className = 'cursor';
         this.dot.className = 'cursor-dot';
         this.pos = { cursor: { x: 0, y: 0 }, dot: { x: 0, y: 0 } };
-        this.velocity = 0.8;  // Higher velocity for faster response
+        this.velocity = 0.15;
         this.init();
     }
 
@@ -2049,7 +1986,7 @@ class CustomCursor {
             this.pos.cursor.x = e.clientX;
             this.pos.cursor.y = e.clientY;
             this.cursor.style.transform = `translate(${this.pos.cursor.x}px, ${this.pos.cursor.y}px)`;
-        });
+        }, { passive: true });
 
         RAF.add({
             update: () => {
@@ -2077,7 +2014,7 @@ class CustomCursor {
     }
 }
 
-// Instant mobile menu
+// Smooth mobile menu
 class MobileMenu {
     constructor() {
         this.toggle = $('.mobile-menu-toggle');
@@ -2092,9 +2029,15 @@ class MobileMenu {
         this.toggle.addEventListener('click', () => this.toggleMenu());
         this.overlay?.addEventListener('click', () => this.closeMenu());
         
+        // Close menu on escape key
         document.addEventListener('keydown', e => {
             if (e.key === 'Escape' && this.isOpen) this.closeMenu();
         });
+
+        // Prevent scroll when menu is open
+        this.nav.addEventListener('touchmove', e => {
+            e.preventDefault();
+        }, { passive: false });
     }
 
     toggleMenu() {
@@ -2113,7 +2056,7 @@ class MobileMenu {
     }
 }
 
-// Fast smooth scroll - 300ms duration
+// Enhanced smooth scroll
 class SmoothScroll {
     constructor() {
         this.links = $$('a[href^="#"]');
@@ -2139,7 +2082,7 @@ class SmoothScroll {
     }
 }
 
-// Quick form handling
+// Quick form validation and submission
 class FormHandler {
     constructor() {
         this.forms = $$('form');
@@ -2151,6 +2094,7 @@ class FormHandler {
             form.setAttribute('novalidate', '');
             form.addEventListener('submit', e => this.handleSubmit(e));
             
+            // Real-time validation
             const inputs = form.querySelectorAll('input, textarea, select');
             inputs.forEach(input => {
                 input.addEventListener('blur', () => this.validateField(input));
@@ -2214,7 +2158,9 @@ class FormHandler {
         submitBtn.innerHTML = '<span class="spinner"></span> Sending...';
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
             this.showMessage(form, 'success', 'Thank you! Message sent successfully.');
             form.reset();
         } catch (error) {
@@ -2230,20 +2176,90 @@ class FormHandler {
         message.className = `form-message ${type}`;
         message.textContent = text;
         form.appendChild(message);
-        setTimeout(() => message.remove(), 2000);
+        setTimeout(() => message.remove(), 3000);
     }
 }
 
 // Initialize everything
 document.addEventListener('DOMContentLoaded', () => {
+    // Remove any existing loaders immediately if JS fails
     document.body.classList.remove('loading');
     
+    // Initialize components with performance in mind
     new LoadingScreen();
     new ScrollReveal();
     new CustomCursor();
     new MobileMenu();
     new SmoothScroll();
     new FormHandler();
+    
+    // Start animation frame loop
+    RAF.update();
+});
+// Enhanced Service Cards Loading
+class ServiceCards {
+    constructor() {
+        this.cards = document.querySelectorAll('.service-card');
+        this.grid = document.querySelector('.services-grid');
+        this.loadedImages = 0;
+        this.totalImages = this.cards.length;
+        this.init();
+    }
+
+    init() {
+        if (!this.cards.length) return;
+
+        // Pre-load all images
+        this.cards.forEach((card, index) => {
+            const img = card.querySelector('img');
+            const imageContainer = card.querySelector('.service-image');
+            
+            if (img) {
+                // Create new image object to preload
+                const preloadImg = new Image();
+                
+                preloadImg.onload = () => {
+                    this.loadedImages++;
+                    imageContainer.classList.add('loaded');
+                    img.style.opacity = '1';
+                    
+                    // Add delay between each card appearance
+                    setTimeout(() => {
+                        card.classList.add('loaded');
+                    }, index * 100);
+
+                    // When all images are loaded, show the grid
+                    if (this.loadedImages === this.totalImages) {
+                        this.grid.classList.add('loaded');
+                    }
+                };
+
+                preloadImg.src = img.src;
+            }
+        });
+
+        // Fallback in case some images fail to load
+        setTimeout(() => {
+            if (!this.grid.classList.contains('loaded')) {
+                this.grid.classList.add('loaded');
+                this.cards.forEach(card => card.classList.add('loaded'));
+            }
+        }, 3000);
+    }
+}
+
+// Update the initialization in your main script
+document.addEventListener('DOMContentLoaded', () => {
+    // Your existing initializations...
+    new LoadingScreen();
+    new ScrollReveal();
+    new CustomCursor();
+    new MobileMenu();
+    new SmoothScroll();
+    new FormHandler();
+    
+    // Add the new ServiceCards initialization
+    new ServiceCards();
     
     RAF.update();
 });
