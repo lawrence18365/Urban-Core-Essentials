@@ -5,27 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Urban Core Essentials - Premium home services including cooking, NDIS support, IT support, meal prep, and home consultations.">
     <title>Urban Core Essentials - Premium Home Services</title>
+    
+    <!-- Fixed preconnect and font loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
- <link rel="preload" href="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
-    <link rel="preload" href="https://images.unsplash.com/photo-1556910103-1c02745aae4d" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
-    <link rel="preload" href="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
-    <link rel="preload" href="https://images.unsplash.com/photo-1531297484001-80022131f5a1" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
-    <link rel="preload" href="https://images.unsplash.com/photo-1547592180-85f173990554" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
-    <link rel="preload" href="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
-    <link rel="preload" href="https://images.unsplash.com/photo-1521791136064-7986c2920216" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
 
-</head>
     <style>
-        /* Base Styles */
-      :root {
-     --dark: #331e31;
-    --pink: #ff1c62;
-    --blue: #4be4f0;
-    --font-heading: 'Italiana', serif;
-    --font-body: 'Montserrat', sans-serif;
-}
+        /* Fixed CSS Variables */
+        :root {
+            --dark: #331e31;
+            --pink: #ff1c62;
+            --blue: #4be4f0;
+            --font-heading: 'Italiana', serif;
+            --font-body: 'Montserrat', sans-serif;
+            --transition-smooth: all 0.3s ease;
+        }
 
 
         * {
@@ -37,26 +33,25 @@
         html {
             scroll-behavior: smooth;
         }
-
+   /* Fixed body opacity transition */
         body {
+            opacity: 1;
             font-family: var(--font-body);
             line-height: 1.6;
             color: var(--dark);
-            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
         }
 /* Remove all other loading-related CSS and replace with just this */
-.loading-screen {
-    position: fixed;
-    inset: 0;
-    background: var(--dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 99999;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
+ .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+        }
 
 .loading-animation {
     width: 100px;
@@ -71,10 +66,6 @@
     to { transform: rotate(360deg); }
 }
 
-body {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
 
 body.loaded {
     opacity: 1;
@@ -1187,14 +1178,7 @@ transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     visibility: visible;
 }
 
-body {
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
 
-body.loaded {
-    opacity: 1;
-}
 /* Newsletter Section */
 .newsletter {
 background: linear-gradient(45deg, var(--dark), var(--pink));
@@ -1419,7 +1403,7 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
 </style>
 <body class="loading">
     <!-- Loading Screen -->
-    <div class="loading-screen">
+    <div class="loading-screen" id="loadingScreen">
         <div class="loading-animation"></div>
     </div>
 
@@ -1776,145 +1760,83 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
 </body>
 </html>
 <script>
-class SiteHandler {
-    constructor() {
-        // Core elements
-        this.body = document.body;
-        this.loadingScreen = $('.loading-screen');
-        this.header = $('.header');
-        this.scrollTopButton = $('#scrollTop');
-        this.mobileMenuToggle = $('.mobile-menu-toggle');
-        this.nav = $('.nav');
-        this.mobileOverlay = $('.mobile-menu-overlay');
-        this.images = Array.from($$('img'));
-        
-        // State
-        this.isLoaded = false;
-        this.isMenuOpen = false;
-        this.scrollThreshold = 300;
-        
-        // Start initialization
-        this.init();
-    }
+ // Fixed querySelector helper functions
+        const $ = selector => document.querySelector(selector);
+        const $$ = selector => document.querySelectorAll(selector);
 
-    init() {
-        // Start loading sequence
-        this.handleLoading();
-        
-        // Initialize other features
-        this.initScrollHandler();
-        this.initMobileMenu();
-        this.initScrollToTop();
-    }
+        // Wait for DOM content to be loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize site handler
+            const site = new SiteHandler();
 
-    handleLoading() {
-        // Track loaded images
-        let loadedImages = 0;
-        const totalImages = this.images.length;
-
-        const markAsLoaded = () => {
-            loadedImages++;
-            if (loadedImages >= totalImages) {
-                this.finishLoading();
-            }
-        };
-
-        // Check each image
-        this.images.forEach(img => {
-            if (img.complete) {
-                markAsLoaded();
-            } else {
-                img.onload = markAsLoaded;
-                img.onerror = markAsLoaded; // Count errors as loaded to avoid hanging
-            }
-        });
-
-        // Failsafe: Load anyway after 3 seconds
-        setTimeout(() => this.finishLoading(), 3000);
-    }
-
-    finishLoading() {
-        if (this.isLoaded) return;
-        this.isLoaded = true;
-
-        // Add loaded class to body
-        this.body.classList.add('loaded');
-        
-        // Hide loading screen
-        this.loadingScreen.classList.add('hidden');
-        
-        // Remove loading screen from DOM after transition
-        setTimeout(() => {
-            this.loadingScreen.style.display = 'none';
-        }, 500);
-    }
-
-    initScrollHandler() {
-        let ticking = false;
-        window.addEventListener('scroll', () => {
-            if (!ticking) {
-                requestAnimationFrame(() => {
-                    const scrollPos = window.pageYOffset;
-                    
-                    // Handle header
-                    this.header.classList.toggle('scrolled', scrollPos > 100);
-                    
-                    // Handle scroll-to-top button
-                    this.scrollTopButton?.classList.toggle('visible', scrollPos > this.scrollThreshold);
-                    
-                    ticking = false;
+            // Fixed image loading check
+            Promise.all(Array.from(document.images).map(img => {
+                if (img.complete) {
+                    return Promise.resolve();
+                }
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve;
                 });
-                ticking = true;
-            }
-        }, { passive: true });
-    }
-
-    initScrollToTop() {
-        this.scrollTopButton?.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
+            })).then(() => {
+                document.body.classList.add('loaded');
+                document.getElementById('loadingScreen').style.display = 'none';
             });
         });
-    }
 
-    initMobileMenu() {
-        if (!this.mobileMenuToggle || !this.nav) return;
-
-        this.mobileMenuToggle.addEventListener('click', () => {
-            this.toggleMobileMenu();
-        });
-
-        this.mobileOverlay?.addEventListener('click', () => {
-            this.closeMobileMenu();
-        });
-
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape' && this.isMenuOpen) {
-                this.closeMobileMenu();
+        // Site Handler Class with fixes
+        class SiteHandler {
+            constructor() {
+                this.initializeElements();
+                this.bindEvents();
             }
-        });
-    }
 
-    toggleMobileMenu() {
-        this.isMenuOpen = !this.isMenuOpen;
-        this.nav.classList.toggle('active');
-        this.mobileOverlay?.classList.toggle('active');
-        this.body.style.overflow = this.isMenuOpen ? 'hidden' : '';
-    }
+            initializeElements() {
+                this.header = $('.header');
+                this.scrollTopButton = $('#scrollTop');
+                this.mobileMenuToggle = $('.mobile-menu-toggle');
+                this.nav = $('.nav');
+                this.mobileOverlay = $('.mobile-menu-overlay');
+            }
 
-    closeMobileMenu() {
-        if (!this.isMenuOpen) return;
-        this.isMenuOpen = false;
-        this.nav.classList.remove('active');
-        this.mobileOverlay?.classList.remove('active');
-        this.body.style.overflow = '';
-    }
-}
+            bindEvents() {
+                // Scroll handler
+                window.addEventListener('scroll', () => {
+                    this.handleScroll();
+                }, { passive: true });
 
-// Initialize everything
-document.addEventListener('DOMContentLoaded', () => {
-    window.site = new SiteHandler();
-});
+                // Mobile menu
+                if (this.mobileMenuToggle) {
+                    this.mobileMenuToggle.addEventListener('click', () => {
+                        this.toggleMobileMenu();
+                    });
+                }
+
+                // Scroll to top
+                if (this.scrollTopButton) {
+                    this.scrollTopButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    });
+                }
+            }
+
+            handleScroll() {
+                const scrollPos = window.pageYOffset;
+                
+                if (this.header) {
+                    this.header.classList.toggle('scrolled', scrollPos > 100);
+                }
+                
+                if (this.scrollTopButton) {
+                    this.scrollTopButton.classList.toggle('visible', scrollPos > 300);
+                }
+            }
+
+            toggleMobileMenu() {
+                this.nav?.classList.toggle('active');
+                this.mobileOverlay?.classList.toggle('active');
+                document.body.style.overflow = this.nav?.classList.contains('active') ? 'hidden' : '';
+            }
+        }
 </script>
