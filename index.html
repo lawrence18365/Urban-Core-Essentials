@@ -8,12 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556910103-1c02745aae4d">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1531297484001-80022131f5a1">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1547592180-85f173990554">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1521791136064-7986c2920216">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1556910103-1c02745aae4d" crossorigin="anonymous">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289" crossorigin="anonymous">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1531297484001-80022131f5a1" crossorigin="anonymous">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1547592180-85f173990554" crossorigin="anonymous">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6" crossorigin="anonymous">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1521791136064-7986c2920216" crossorigin="anonymous">
 </head>
     <style>
         /* Base Styles */
@@ -1131,6 +1131,15 @@ height: 100%;
 object-fit: cover;
 transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* Add this to your CSS */
+body.loading img {
+    opacity: 0;
+}
+
+img {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
 .blog-card:hover .blog-image img {
 transform: scale(1.1);
 }
@@ -1386,8 +1395,6 @@ transition: box-shadow 0.3s ease;
 outline: none;
 box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
 }
-}
-
 </style>
 <body class="loading">
     <!-- Loading Screen -->
@@ -1777,56 +1784,70 @@ const RAF = {
     }
 };
 
-// Fast loading screen
 class LoadingScreen {
     constructor() {
         this.screen = $('.loading-screen');
-        if (!this.screen) return;
+        this.imagesLoaded = 0;
+        this.totalImages = $$('img').length;
         this.init();
     }
 
     init() {
-        // Force remove loading screen after 1.5s
-        setTimeout(() => this.remove(), 1500);
-        window.addEventListener('load', () => this.remove());
+        if (!this.screen) return;
+        
+        // Keep body in loading state
+        document.body.classList.add('loading');
+        
+        // Preload all images
+        const images = $$('img');
+        
+        if (images.length === 0) {
+            this.remove();
+            return;
+        }
+
+        // Create array of image load promises
+        const imagePromises = Array.from(images).map(img => {
+            return new Promise((resolve) => {
+                if (img.complete) {
+                    this.imagesLoaded++;
+                    resolve();
+                } else {
+                    img.onload = () => {
+                        this.imagesLoaded++;
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        this.imagesLoaded++;
+                        resolve();
+                    };
+                }
+            });
+        });
+
+        // Wait for all images to load
+        Promise.all(imagePromises)
+            .then(() => {
+                setTimeout(() => this.remove(), 500);
+            })
+            .catch(() => {
+                // Fallback: remove loader after timeout even if some images fail
+                setTimeout(() => this.remove(), 5000);
+            });
+
+        // Fallback timeout
+        setTimeout(() => this.remove(), 8000);
     }
 
     remove() {
         if (!this.screen || this.screen.classList.contains('loaded')) return;
+        
         this.screen.classList.add('loaded');
         document.body.classList.remove('loading');
-        setTimeout(() => this.screen?.remove(), 300);
-    }
-}
-
-class ScrollReveal {
-    constructor() {
-        this.items = $$('[]');
-        this.observer = new IntersectionObserver(
-            entries => {
-                entries.forEach(entry => {
-                    // Show as soon as even 1px is visible
-                    if (entry.intersectionRatio > 0) {
-                        // Force immediate display
-                        entry.target.classList.add('in-view');
-                        // Stop observing
-                        this.observer.unobserve(entry.target);
-                    }
-                });
-            },
-            {
-                // Show content earlier
-                rootMargin: '50px 0px -10% 0px',
-                threshold: 0
-            }
-        );
         
-        // Initialize immediately
-        this.init();
-    }
-
-    init() {
-        this.items.forEach(item => this.observer.observe(item));
+        setTimeout(() => {
+            this.screen?.remove();
+        }, 300);
     }
 }
 // Enhanced custom cursor
@@ -2043,14 +2064,9 @@ class FormHandler {
     }
 }
 
-// Initialize everything
 document.addEventListener('DOMContentLoaded', () => {
-    // Remove any existing loaders immediately if JS fails
-    document.body.classList.remove('loading');
-    
-    // Initialize components with performance in mind
-    new LoadingScreen();
-    new ScrollReveal();
+    // Initialize components
+    const loader = new LoadingScreen();
     new CustomCursor();
     new MobileMenu();
     new SmoothScroll();
@@ -2060,21 +2076,5 @@ document.addEventListener('DOMContentLoaded', () => {
     RAF.update();
 });
 
-// 4. Initialization Fix
-document.addEventListener('DOMContentLoaded', () => {
-    // Ensure body has loading class initially
-    document.body.classList.add('loading');
-    
-    // Initialize components
-    const loader = new LoadingScreen();
-    const serviceCards = new ServiceCards();
-    
-    // Remove loading class when everything is ready
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            document.body.classList.remove('loading');
-            loader.remove();
-        }, 500); // Small delay for smoother transition
-    });
-});
+// Remove the second DOMContentLoaded listener
 </script>
