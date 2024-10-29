@@ -44,6 +44,52 @@
             color: var(--dark);
             overflow-x: hidden;
         }
+/* Remove all other loading-related CSS and replace with just this */
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.loading-animation {
+    width: 100px;
+    height: 100px;
+    border: 3px solid rgba(255, 28, 98, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--pink);
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+body {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+body.loaded {
+    opacity: 1;
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+img {
+    opacity: 1 !important;
+    transition: transform 0.3s ease !important;
+}
 
         /* Typography */
         h1, h2, h3, h4, h5 {
@@ -894,60 +940,7 @@ border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
 animation: cursor-hover 2s infinite;
 }
 }
-/* Loading Animation */
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loading-screen {
-    position: fixed;
-    inset: 0;
-    background: var(--dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    opacity: 1; /* Was missing explicit opacity */
-    visibility: visible; /* Was missing explicit visibility */
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-
-.loading-screen.loaded {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none; /* Prevent interaction after hidden */
-}
-
-.loading-animation {
-    width: 100px;
-    height: 100px;
-    border: 3px solid rgba(255, 28, 98, 0.3);
-    border-radius: 50%;
-    border-top-color: var(--pink);
-    animation: spin 1s infinite linear;
-}
-body.loading {
-    overflow: hidden;
-}
-.loading-screen.loaded {
-opacity: 0;
-visibility: hidden;
-}
-.loading-animation {
-width: 100px;
-height: 100px;
-border: 3px solid rgba(255, 28, 98, 0.3);
-border-radius: 50%;
-border-top-color: var(--pink);
-animation: spin 1s infinite linear;
-}
-@keyframes spin {
-to {
-transform: rotate(360deg);
-}
-}
 
 /* Service Testimonials */
 .testimonial-slider {
@@ -1164,80 +1157,6 @@ width: 100%;
 height: 100%;
 object-fit: cover;
 transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-/* Add this to your CSS */
-body.loading img {
-    opacity: 0;
-}
-/* Critical Loading Styles */
-body {
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-
-.loading-screen {
-    position: fixed;
-    inset: 0;
-    background: var(--dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 99999;
-    opacity: 1;
-    transition: opacity 0.5s ease;
-}
-/* Replace with these proper loading styles */
-.loading {
-    overflow: hidden;
-}
-
-.loading img {
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-
-.loading-screen {
-    position: fixed;
-    inset: 0;
-    background: var(--dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 99999;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-
-.loading-screen.loaded {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.loading-animation {
-    width: 100px;
-    height: 100px;
-    border: 3px solid rgba(255, 28, 98, 0.3);
-    border-radius: 50%;
-    border-top-color: var(--pink);
-    animation: spin 1s infinite linear;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Image loading */
-.service-image img {
-    opacity: 0;
-    transition: opacity 0.5s ease, transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.service-image img.loaded {
-    opacity: 1;
 }
 
 /* Ensure smooth transitions */
@@ -1857,114 +1776,100 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
 </body>
 </html>
 <script>
-// Utility functions
-const $ = selector => document.querySelector(selector);
-const $$ = selector => document.querySelectorAll(selector);
-
-// Site Handler - Single Class Pattern
 class SiteHandler {
     constructor() {
+        // Core elements
         this.body = document.body;
         this.loadingScreen = $('.loading-screen');
         this.header = $('.header');
         this.scrollTopButton = $('#scrollTop');
-        this.images = $$('img');
-        this.isLoaded = false;
-        this.imagesLoaded = 0;
-        this.totalImages = this.images.length;
+        this.mobileMenuToggle = $('.mobile-menu-toggle');
+        this.nav = $('.nav');
+        this.mobileOverlay = $('.mobile-menu-overlay');
+        this.images = Array.from($$('img'));
         
+        // State
+        this.isLoaded = false;
+        this.isMenuOpen = false;
+        this.scrollThreshold = 300;
+        
+        // Start initialization
         this.init();
     }
 
     init() {
         // Start loading sequence
-        this.body.classList.add('loading');
-        this.initImageLoading();
+        this.handleLoading();
         
-        // Initialize other handlers
-        this.initScrollHandlers();
+        // Initialize other features
+        this.initScrollHandler();
         this.initMobileMenu();
-        this.initSmoothScroll();
-        this.initForms();
+        this.initScrollToTop();
     }
 
-    initImageLoading() {
-        if (this.totalImages === 0) {
-            this.completeLoading();
-            return;
-        }
+    handleLoading() {
+        // Track loaded images
+        let loadedImages = 0;
+        const totalImages = this.images.length;
 
+        const markAsLoaded = () => {
+            loadedImages++;
+            if (loadedImages >= totalImages) {
+                this.finishLoading();
+            }
+        };
+
+        // Check each image
         this.images.forEach(img => {
             if (img.complete) {
-                this.handleImageLoad(img);
+                markAsLoaded();
             } else {
-                img.addEventListener('load', () => this.handleImageLoad(img));
-                img.addEventListener('error', () => this.handleImageLoad(img));
+                img.onload = markAsLoaded;
+                img.onerror = markAsLoaded; // Count errors as loaded to avoid hanging
             }
         });
 
-        // Failsafe
-        setTimeout(() => this.completeLoading(), 5000);
+        // Failsafe: Load anyway after 3 seconds
+        setTimeout(() => this.finishLoading(), 3000);
     }
 
-    handleImageLoad(img) {
-        this.imagesLoaded++;
-        img.classList.add('loaded');
-        
-        if (this.imagesLoaded >= this.totalImages) {
-            this.completeLoading();
-        }
-    }
-
-    completeLoading() {
+    finishLoading() {
         if (this.isLoaded) return;
-        
         this.isLoaded = true;
+
+        // Add loaded class to body
+        this.body.classList.add('loaded');
         
-        // Add loaded class to loading screen
-        this.loadingScreen.classList.add('loaded');
+        // Hide loading screen
+        this.loadingScreen.classList.add('hidden');
         
-        // Short delay before removing loading class from body
+        // Remove loading screen from DOM after transition
         setTimeout(() => {
-            this.body.classList.remove('loading');
-            this.body.classList.add('loaded');
-            
-            // Initialize scroll handlers after content is visible
-            this.handleScroll();
+            this.loadingScreen.style.display = 'none';
         }, 500);
     }
 
-    handleScroll() {
-        const scrollPosition = window.pageYOffset;
-        
-        // Handle header
-        if (scrollPosition > 100) {
-            this.header.classList.add('scrolled');
-        } else {
-            this.header.classList.remove('scrolled');
-        }
-        
-        // Handle scroll-to-top button
-        if (scrollPosition > 300) {
-            this.scrollTopButton?.classList.add('visible');
-        } else {
-            this.scrollTopButton?.classList.remove('visible');
-        }
-    }
-
-    initScrollHandlers() {
+    initScrollHandler() {
         let ticking = false;
-        
         window.addEventListener('scroll', () => {
             if (!ticking) {
                 requestAnimationFrame(() => {
-                    this.handleScroll();
+                    const scrollPos = window.pageYOffset;
+                    
+                    // Handle header
+                    this.header.classList.toggle('scrolled', scrollPos > 100);
+                    
+                    // Handle scroll-to-top button
+                    this.scrollTopButton?.classList.toggle('visible', scrollPos > this.scrollThreshold);
+                    
                     ticking = false;
                 });
                 ticking = true;
             }
         }, { passive: true });
+    }
 
+    initScrollToTop() {
         this.scrollTopButton?.addEventListener('click', (e) => {
             e.preventDefault();
             window.scrollTo({
@@ -1972,30 +1877,6 @@ class SiteHandler {
                 behavior: 'smooth'
             });
         });
-    }
-
-    handleScroll() {
-        const scrollPosition = window.pageYOffset;
-        
-        // Handle header
-        if (this.header) {
-            if (scrollPosition > 100) {
-                this.header.classList.add('scrolled');
-            } else {
-                this.header.classList.remove('scrolled');
-            }
-        }
-        
-        // Handle scroll-to-top button
-        if (this.scrollTopButton) {
-            if (scrollPosition > this.scrollThreshold) {
-                this.scrollTopButton.classList.add('visible');
-            } else {
-                this.scrollTopButton.classList.remove('visible');
-            }
-        }
-        
-        this.lastScrollPosition = scrollPosition;
     }
 
     initMobileMenu() {
@@ -2030,135 +1911,9 @@ class SiteHandler {
         this.mobileOverlay?.classList.remove('active');
         this.body.style.overflow = '';
     }
-
-    initSmoothScroll() {
-        const links = $$('a[href^="#"]');
-        const headerHeight = this.header?.offsetHeight || 0;
-
-        links.forEach(link => {
-            link.addEventListener('click', e => {
-                e.preventDefault();
-                const target = $(link.getAttribute('href'));
-                if (!target) return;
-
-                const top = target.offsetTop - headerHeight;
-                window.scrollTo({
-                    top,
-                    behavior: 'smooth'
-                });
-            });
-        });
-    }
-
-    initForms() {
-        const forms = $$('form');
-        forms.forEach(form => {
-            new FormHandler(form);
-        });
-    }
-}
-class FormHandler {
-    constructor(form) {
-        this.form = form;
-        this.init();
-    }
-
-    init() {
-        this.form.setAttribute('novalidate', '');
-        this.form.addEventListener('submit', e => this.handleSubmit(e));
-        
-        const inputs = this.form.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-            input.addEventListener('blur', () => this.validateField(input));
-            input.addEventListener('input', () => this.clearError(input));
-        });
-    }
-
-    validateField(field) {
-        this.clearError(field);
-        
-        if (field.hasAttribute('required') && !field.value.trim()) {
-            return this.showError(field, 'This field is required');
-        }
-        
-        if (field.type === 'email' && field.value.trim()) {
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) {
-                return this.showError(field, 'Please enter a valid email');
-            }
-        }
-        
-        if (field.type === 'tel' && field.value.trim()) {
-            if (!/^[\d\s()-]+$/.test(field.value)) {
-                return this.showError(field, 'Please enter a valid phone number');
-            }
-        }
-        
-        return true;
-    }
-
-    showError(field, message) {
-        field.classList.add('error');
-        const error = document.createElement('div');
-        error.className = 'error-message';
-        error.textContent = message;
-        field.parentNode.appendChild(error);
-        return false;
-    }
-
-    clearError(field) {
-        field.classList.remove('error');
-        const error = field.parentNode.querySelector('.error-message');
-        if (error) error.remove();
-    }
-
-    async handleSubmit(e) {
-        e.preventDefault();
-        
-        let isValid = true;
-        const fields = this.form.querySelectorAll('input, textarea, select');
-        fields.forEach(field => {
-            if (!this.validateField(field)) isValid = false;
-        });
-        
-        if (!isValid) return;
-
-        const submitBtn = this.form.querySelector('[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = 'Sending...';
-
-        try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            this.showMessage('success', 'Thank you! Message sent successfully.');
-            this.form.reset();
-        } catch (error) {
-            this.showMessage('error', 'An error occurred. Please try again.');
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-        }
-    }
-
-    showMessage(type, text) {
-        // Remove any existing messages
-        const existingMessage = this.form.querySelector('.form-message');
-        if (existingMessage) existingMessage.remove();
-
-        // Create and show new message
-        const message = document.createElement('div');
-        message.className = `form-message ${type}`;
-        message.textContent = text;
-        this.form.appendChild(message);
-        
-        // Auto-remove message after delay
-        setTimeout(() => {
-            message.remove();
-        }, 3000);
-    }
 }
 
-// Complete script should include all previous code plus this completed FormHandler class
+// Initialize everything
 document.addEventListener('DOMContentLoaded', () => {
     window.site = new SiteHandler();
 });
