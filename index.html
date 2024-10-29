@@ -1864,73 +1864,98 @@ const $$ = selector => document.querySelectorAll(selector);
 // Site Handler - Single Class Pattern
 class SiteHandler {
     constructor() {
-        // Core elements
         this.body = document.body;
         this.loadingScreen = $('.loading-screen');
         this.header = $('.header');
         this.scrollTopButton = $('#scrollTop');
-        this.mobileMenuToggle = $('.mobile-menu-toggle');
-        this.nav = $('.nav');
-        this.mobileOverlay = $('.mobile-menu-overlay');
-        
-        // State
+        this.images = $$('img');
         this.isLoaded = false;
-        this.isMenuOpen = false;
-        this.lastScrollPosition = 0;
-        this.scrollThreshold = 300;
+        this.imagesLoaded = 0;
+        this.totalImages = this.images.length;
         
-        // Initialize
         this.init();
     }
 
     init() {
-        // Handle initial loading
-        this.handleLoading();
+        // Start loading sequence
+        this.body.classList.add('loading');
+        this.initImageLoading();
         
-        // Initialize scrolling features after load
+        // Initialize other handlers
         this.initScrollHandlers();
-        
-        // Initialize mobile menu
         this.initMobileMenu();
-        
-        // Initialize smooth scroll
         this.initSmoothScroll();
-        
-        // Initialize forms
         this.initForms();
     }
 
-    handleLoading() {
-        // Set initial states
-        this.body.style.opacity = '0';
-        
-        // Handle page load
-        const completeLoading = () => {
-            if (this.isLoaded) return;
-            
-            this.isLoaded = true;
-            this.loadingScreen.style.opacity = '0';
-            this.body.style.opacity = '1';
-            
-            setTimeout(() => {
-                this.loadingScreen.style.display = 'none';
-                this.body.classList.remove('loading');
-                // Check scroll position immediately after load
-                this.handleScroll();
-            }, 500);
-        };
+    initImageLoading() {
+        if (this.totalImages === 0) {
+            this.completeLoading();
+            return;
+        }
 
-        // Listen for load event
-        window.addEventListener('load', completeLoading);
-        
+        this.images.forEach(img => {
+            if (img.complete) {
+                this.handleImageLoad(img);
+            } else {
+                img.addEventListener('load', () => this.handleImageLoad(img));
+                img.addEventListener('error', () => this.handleImageLoad(img));
+            }
+        });
+
         // Failsafe
-        setTimeout(completeLoading, 2000);
+        setTimeout(() => this.completeLoading(), 5000);
+    }
+
+    handleImageLoad(img) {
+        this.imagesLoaded++;
+        img.classList.add('loaded');
+        
+        if (this.imagesLoaded >= this.totalImages) {
+            this.completeLoading();
+        }
+    }
+
+    completeLoading() {
+        if (this.isLoaded) return;
+        
+        this.isLoaded = true;
+        
+        // Add loaded class to loading screen
+        this.loadingScreen.classList.add('loaded');
+        
+        // Short delay before removing loading class from body
+        setTimeout(() => {
+            this.body.classList.remove('loading');
+            this.body.classList.add('loaded');
+            
+            // Initialize scroll handlers after content is visible
+            this.handleScroll();
+        }, 500);
+    }
+
+    handleScroll() {
+        const scrollPosition = window.pageYOffset;
+        
+        // Handle header
+        if (scrollPosition > 100) {
+            this.header.classList.add('scrolled');
+        } else {
+            this.header.classList.remove('scrolled');
+        }
+        
+        // Handle scroll-to-top button
+        if (scrollPosition > 300) {
+            this.scrollTopButton?.classList.add('visible');
+        } else {
+            this.scrollTopButton?.classList.remove('visible');
+        }
     }
 
     initScrollHandlers() {
         let ticking = false;
         
-        const handleScroll = () => {
+        window.addEventListener('scroll', () => {
             if (!ticking) {
                 requestAnimationFrame(() => {
                     this.handleScroll();
@@ -1938,12 +1963,8 @@ class SiteHandler {
                 });
                 ticking = true;
             }
-        };
+        }, { passive: true });
 
-        // Add scroll listener once
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        
-        // Handle scroll-to-top button click
         this.scrollTopButton?.addEventListener('click', (e) => {
             e.preventDefault();
             window.scrollTo({
