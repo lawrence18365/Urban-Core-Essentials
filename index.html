@@ -8,12 +8,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1556910103-1c02745aae4d" crossorigin="anonymous">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289" crossorigin="anonymous">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1531297484001-80022131f5a1" crossorigin="anonymous">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1547592180-85f173990554" crossorigin="anonymous">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6" crossorigin="anonymous">
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1521791136064-7986c2920216" crossorigin="anonymous">
+ <link rel="preload" href="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
+    <link rel="preload" href="https://images.unsplash.com/photo-1556910103-1c02745aae4d" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
+    <link rel="preload" href="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
+    <link rel="preload" href="https://images.unsplash.com/photo-1531297484001-80022131f5a1" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
+    <link rel="preload" href="https://images.unsplash.com/photo-1547592180-85f173990554" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
+    <link rel="preload" href="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
+    <link rel="preload" href="https://images.unsplash.com/photo-1521791136064-7986c2920216" as="image" type="image/jpeg" fetchpriority="high" crossorigin="anonymous">
+
 </head>
     <style>
         /* Base Styles */
@@ -1135,6 +1137,36 @@ transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 body.loading img {
     opacity: 0;
 }
+/* Add to your existing CSS */
+body {
+    visibility: hidden;
+}
+
+body.loading {
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    opacity: 1;
+    visibility: visible;
+}
+
+.loading-animation {
+    width: 100px;
+    height: 100px;
+    border: 3px solid rgba(255, 28, 98, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--pink);
+    animation: spin 1s infinite linear;
+}
 
 img {
     opacity: 1;
@@ -1787,66 +1819,71 @@ const RAF = {
 class LoadingScreen {
     constructor() {
         this.screen = $('.loading-screen');
-        this.imagesLoaded = 0;
-        this.totalImages = $$('img').length;
+        this.imagePromises = [];
         this.init();
     }
 
     init() {
-        if (!this.screen) return;
-        
         // Keep body in loading state
-        document.body.classList.add('loading');
+        document.body.style.visibility = 'hidden';
         
-        // Preload all images
-        const images = $$('img');
-        
-        if (images.length === 0) {
-            this.remove();
-            return;
-        }
-
-        // Create array of image load promises
-        const imagePromises = Array.from(images).map(img => {
-            return new Promise((resolve) => {
+        // Create promises for all images
+        const images = document.querySelectorAll('img');
+        this.imagePromises = Array.from(images).map(img => {
+            return new Promise((resolve, reject) => {
+                // If image is already loaded
                 if (img.complete) {
-                    this.imagesLoaded++;
                     resolve();
                 } else {
-                    img.onload = () => {
-                        this.imagesLoaded++;
-                        resolve();
-                    };
-                    img.onerror = () => {
-                        this.imagesLoaded++;
-                        resolve();
-                    };
+                    // If image is still loading
+                    img.onload = resolve;
+                    img.onerror = resolve; // Resolve even on error to prevent hanging
                 }
+                
+                // Force load the image
+                const src = img.src;
+                img.src = '';
+                img.src = src;
             });
         });
 
+        // Add promises for preloaded resources
+        document.querySelectorAll('link[rel="preload"][as="image"]').forEach(link => {
+            this.imagePromises.push(
+                new Promise((resolve) => {
+                    const img = new Image();
+                    img.src = link.href;
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                })
+            );
+        });
+
         // Wait for all images to load
-        Promise.all(imagePromises)
+        Promise.all(this.imagePromises)
             .then(() => {
-                setTimeout(() => this.remove(), 500);
+                // Small delay to ensure smooth transition
+                setTimeout(() => {
+                    this.revealPage();
+                }, 300);
             })
             .catch(() => {
-                // Fallback: remove loader after timeout even if some images fail
-                setTimeout(() => this.remove(), 5000);
+                // Fallback after 5 seconds if something goes wrong
+                setTimeout(() => this.revealPage(), 5000);
             });
-
-        // Fallback timeout
-        setTimeout(() => this.remove(), 8000);
     }
 
-    remove() {
-        if (!this.screen || this.screen.classList.contains('loaded')) return;
+    revealPage() {
+        // Remove loading screen
+        this.screen?.classList.add('loaded');
         
-        this.screen.classList.add('loaded');
-        document.body.classList.remove('loading');
+        // Show the page
+        document.body.style.visibility = 'visible';
         
+        // Clean up
         setTimeout(() => {
             this.screen?.remove();
+            document.body.classList.remove('loading');
         }, 300);
     }
 }
@@ -2063,18 +2100,12 @@ class FormHandler {
         setTimeout(() => message.remove(), 3000);
     }
 }
-
+// At the bottom of your script
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize components
-    const loader = new LoadingScreen();
+    new LoadingScreen();
     new CustomCursor();
     new MobileMenu();
     new SmoothScroll();
     new FormHandler();
-    
-    // Start animation frame loop
-    RAF.update();
 });
-
-// Remove the second DOMContentLoaded listener
 </script>
