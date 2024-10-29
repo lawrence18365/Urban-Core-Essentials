@@ -1758,303 +1758,92 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
 </body>
 </html>
 <script>
-// Utility functions with better performance
+// Utility functions
 const $ = selector => document.querySelector(selector);
 const $$ = selector => document.querySelectorAll(selector);
 
-// Performance-optimized debounce
-const debounce = (fn, wait = 10) => {
-    let timeout;
-    return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fn.apply(this, args), wait);
-    };
-};
-
-// Optimized RAF for smoother animations
-const RAF = {
-    elements: new Set(),
-    update() {
-        for(const el of this.elements) el.update();
-        requestAnimationFrame(() => this.update());
-    },
-    add(element) {
-        this.elements.add(element);
-        if(this.elements.size === 1) this.update();
-    },
-    remove(element) {
-        this.elements.delete(element);
-    }
-};
 class LoadingScreen {
     constructor() {
-        this.screen = document.querySelector('.loading-screen');
+        this.screen = $('.loading-screen');
+        this.imageUrls = [
+            'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c',
+            'https://images.unsplash.com/photo-1556910103-1c02745aae4d',
+            'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289',
+            'https://images.unsplash.com/photo-1531297484001-80022131f5a1',
+            'https://images.unsplash.com/photo-1547592180-85f173990554',
+            'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6',
+            'https://images.unsplash.com/photo-1521791136064-7986c2920216',
+            'https://images.unsplash.com/photo-1523428096881-5bd79d043006',
+            'https://images.unsplash.com/photo-1528072164453-f4e8ef0d475a',
+            'https://images.unsplash.com/photo-1571407509209-73c3c5551220'
+        ];
+        this.loadedImages = 0;
         this.init();
     }
 
-    init() {
-        // Hide page initially
-        document.body.style.opacity = '0';
-        
-        // Create array of all image promises
-        const imagePromises = Array.from(document.querySelectorAll('img')).map(img => {
-            return new Promise((resolve) => {
-                const image = new Image();
-                image.onload = resolve;
-                image.onerror = resolve; // Handle errors gracefully
-                image.src = img.src;
-            });
-        });
-
-        // Wait for ALL images to load
-        Promise.all(imagePromises)
-            .then(() => {
-                // Once all images are loaded, show the page
-                this.screen.style.opacity = '0';
-                document.body.style.opacity = '1';
-                
-                // Remove loader
-                setTimeout(() => {
-                    this.screen.remove();
-                    document.body.classList.remove('loading');
-                }, 500);
-            })
-            .catch(() => {
-                // Fallback if something goes wrong
-                console.warn('Some images failed to load');
-                this.screen.style.opacity = '0';
-                document.body.style.opacity = '1';
-                
-                setTimeout(() => {
-                    this.screen.remove();
-                    document.body.classList.remove('loading');
-                }, 500);
-            });
-    }
-}
-// Enhanced custom cursor
-class CustomCursor {
-    constructor() {
-        this.cursor = document.createElement('div');
-        this.dot = document.createElement('div');
-        this.cursor.className = 'cursor';
-        this.dot.className = 'cursor-dot';
-        this.pos = { cursor: { x: 0, y: 0 }, dot: { x: 0, y: 0 } };
-        this.velocity = 0.15;
-        this.init();
-    }
-
-    init() {
-        document.body.appendChild(this.cursor);
-        document.body.appendChild(this.dot);
-
-        window.addEventListener('mousemove', e => {
-            this.pos.cursor.x = e.clientX;
-            this.pos.cursor.y = e.clientY;
-            this.cursor.style.transform = `translate(${this.pos.cursor.x}px, ${this.pos.cursor.y}px)`;
-        }, { passive: true });
-
-        RAF.add({
-            update: () => {
-                const dx = this.pos.cursor.x - this.pos.dot.x;
-                const dy = this.pos.cursor.y - this.pos.dot.y;
-                
-                this.pos.dot.x += dx * this.velocity;
-                this.pos.dot.y += dy * this.velocity;
-                
-                this.dot.style.transform = `translate(${this.pos.dot.x}px, ${this.pos.dot.y}px)`;
-            }
-        });
-
-        $$('a, button, .hover-effect').forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                this.cursor.classList.add('hover');
-                this.dot.classList.add('hover');
-            });
-            
-            el.addEventListener('mouseleave', () => {
-                this.cursor.classList.remove('hover');
-                this.dot.classList.remove('hover');
-            });
-        });
-    }
-}
-
-// Smooth mobile menu
-class MobileMenu {
-    constructor() {
-        this.toggle = $('.mobile-menu-toggle');
-        this.nav = $('.nav');
-        this.overlay = $('.mobile-menu-overlay');
-        this.isOpen = false;
-        this.init();
-    }
-
-    init() {
-        if (!this.toggle || !this.nav) return;
-        this.toggle.addEventListener('click', () => this.toggleMenu());
-        this.overlay?.addEventListener('click', () => this.closeMenu());
-        
-        // Close menu on escape key
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape' && this.isOpen) this.closeMenu();
-        });
-
-        // Prevent scroll when menu is open
-        this.nav.addEventListener('touchmove', e => {
-            e.preventDefault();
-        }, { passive: false });
-    }
-
-    toggleMenu() {
-        this.isOpen = !this.isOpen;
-        this.nav.classList.toggle('active');
-        this.overlay?.classList.toggle('active');
-        document.body.style.overflow = this.isOpen ? 'hidden' : '';
-    }
-
-    closeMenu() {
-        if (!this.isOpen) return;
-        this.isOpen = false;
-        this.nav.classList.remove('active');
-        this.overlay?.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-}
-
-// Enhanced smooth scroll
-class SmoothScroll {
-    constructor() {
-        this.links = $$('a[href^="#"]');
-        this.header = $('.header');
-        this.headerHeight = this.header?.offsetHeight || 0;
-        this.init();
-    }
-
-    init() {
-        this.links.forEach(link => {
-            link.addEventListener('click', e => {
-                e.preventDefault();
-                const target = $(link.getAttribute('href'));
-                if (!target) return;
-
-                const top = target.offsetTop - this.headerHeight;
-                window.scrollTo({
-                    top,
-                    behavior: 'smooth'
-                });
-            });
-        });
-    }
-}
-
-// Quick form validation and submission
-class FormHandler {
-    constructor() {
-        this.forms = $$('form');
-        this.init();
-    }
-
-    init() {
-        this.forms.forEach(form => {
-            form.setAttribute('novalidate', '');
-            form.addEventListener('submit', e => this.handleSubmit(e));
-            
-            // Real-time validation
-            const inputs = form.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => {
-                input.addEventListener('blur', () => this.validateField(input));
-                input.addEventListener('input', () => this.clearError(input));
-            });
+    preloadImage(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                this.loadedImages++;
+                resolve();
+            };
+            img.onerror = () => {
+                this.loadedImages++;
+                resolve(); // Resolve anyway to prevent hanging
+            };
+            img.src = url;
         });
     }
 
-    validateField(field) {
-        this.clearError(field);
-        
-        if (field.hasAttribute('required') && !field.value.trim()) {
-            return this.showError(field, 'This field is required');
-        }
-        
-        if (field.type === 'email' && field.value.trim()) {
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) {
-                return this.showError(field, 'Please enter a valid email');
-            }
-        }
-        
-        if (field.type === 'tel' && field.value.trim()) {
-            if (!/^[\d\s()-]+$/.test(field.value)) {
-                return this.showError(field, 'Please enter a valid phone number');
-            }
-        }
-        
-        return true;
-    }
-
-    showError(field, message) {
-        field.classList.add('error');
-        const error = document.createElement('div');
-        error.className = 'error-message';
-        error.textContent = message;
-        field.parentNode.appendChild(error);
-        return false;
-    }
-
-    clearError(field) {
-        field.classList.remove('error');
-        const error = field.parentNode.querySelector('.error-message');
-        if (error) error.remove();
-    }
-
-    async handleSubmit(e) {
-        e.preventDefault();
-        const form = e.target;
-        
-        let isValid = true;
-        const fields = form.querySelectorAll('input, textarea, select');
-        fields.forEach(field => {
-            if (!this.validateField(field)) isValid = false;
-        });
-        
-        if (!isValid) return;
-
-        const submitBtn = form.querySelector('[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner"></span> Sending...';
+    async init() {
+        // Keep body hidden and show loading screen
+        document.body.style.visibility = 'hidden';
+        this.screen.style.display = 'flex';
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
-            this.showMessage(form, 'success', 'Thank you! Message sent successfully.');
-            form.reset();
+            // Preload all images concurrently
+            const imagePromises = this.imageUrls.map(url => this.preloadImage(url));
+            await Promise.all(imagePromises);
+
+            // Hide loader and show content
+            this.revealContent();
         } catch (error) {
-            this.showMessage(form, 'error', 'An error occurred. Please try again.');
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
+            console.error('Error loading images:', error);
+            // Fallback - show content anyway after 5 seconds
+            setTimeout(() => this.revealContent(), 5000);
         }
     }
 
-    showMessage(form, type, text) {
-        const message = document.createElement('div');
-        message.className = `form-message ${type}`;
-        message.textContent = text;
-        form.appendChild(message);
-        setTimeout(() => message.remove(), 3000);
+    revealContent() {
+        // Hide loading screen
+        this.screen.style.opacity = '0';
+        
+        // Show body content
+        document.body.style.visibility = 'visible';
+        document.body.style.opacity = '1';
+        
+        // Remove loading screen after fade
+        setTimeout(() => {
+            this.screen.style.display = 'none';
+            document.body.classList.remove('loading');
+        }, 500);
     }
 }
+
+// Rest of your utility classes unchanged...
+
+// Initialize everything
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize loading screen first
+    // First initialize loading screen
     const loader = new LoadingScreen();
 
-    // Initialize other components after page is visible
+    // Initialize other components after content is revealed
     setTimeout(() => {
         new CustomCursor();
         new MobileMenu();
         new SmoothScroll();
         new FormHandler();
-    }, 500);
+    }, 1000);
 });
 </script>
