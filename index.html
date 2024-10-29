@@ -1332,53 +1332,7 @@ transition: transform 0.3s ease;
 .gallery-item:hover .gallery-title {
 transform: translateY(0);
 }
-/* Modal */
-.modal {
-position: fixed;
-inset: 0;
-background: rgba(0, 0, 0, 0.9);
-display: flex;
-align-items: center;
-justify-content: center;
-z-index: 1000;
-opacity: 0;
-visibility: hidden;
-transition: all 0.3s ease;
-}
-.modal.active {
-opacity: 1;
-visibility: visible;
-}
-.modal-content {
-position: relative;
-max-width: 90%;
-max-height: 90vh;
-transform: scale(0.9);
-transition: transform 0.3s ease;
-}
-.modal.active .modal-content {
-transform: scale(1);
-}
-.modal-close {
-position: absolute;
-top: 1rem;
-right: 1rem;
-width: 40px;
-height: 40px;
-background: white;
-border: none;
-border-radius: 50%;
-cursor: pointer;
-display: flex;
-align-items: center;
-justify-content: center;
-transition: all 0.3s ease;
-}
-.modal-close:hover {
-background: var(--pink);
-color: white;
-transform: rotate(90deg);
-}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
 width: 10px;
@@ -1424,39 +1378,6 @@ a {
     background: none;
 }
 }
-/* Utility Classes */
-.text-gradient {
-background: linear-gradient(45deg, var(--pink), var(--blue));
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-}
-.animate-float {
-animation: float 6s ease-in-out infinite;
-}
-.animate-pulse {
-animation: pulse 2s infinite;
-}
-.backdrop-blur {
-backdrop-filter: blur(10px);
-}
-.text-shadow {
-text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-.clip-path-diagonal {
-clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
-}
-.hover-lift {
-transition: transform 0.3s ease;
-}
-.hover-lift:hover {
-transform: translateY(-5px);
-}
-.hover-grow {
-transition: transform 0.3s ease;
-}
-.hover-grow:hover {
-transform: scale(1.05);
-}
 .focus-ring {
 transition: box-shadow 0.3s ease;
 }
@@ -1464,7 +1385,7 @@ transition: box-shadow 0.3s ease;
 outline: none;
 box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
 }
-
+}
 
 </style>
 <body class="loading">
