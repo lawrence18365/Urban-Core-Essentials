@@ -1137,14 +1137,10 @@ transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 body.loading img {
     opacity: 0;
 }
-/* Add to your existing CSS */
+/* Critical Loading Styles */
 body {
-    visibility: hidden;
-}
-
-body.loading {
-    overflow: hidden;
-    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease;
 }
 
 .loading-screen {
@@ -1156,55 +1152,30 @@ body.loading {
     justify-content: center;
     z-index: 99999;
     opacity: 1;
-    visibility: visible;
+    transition: opacity 0.5s ease;
 }
 
-.loading-animation {
-    width: 100px;
-    height: 100px;
-    border: 3px solid rgba(255, 28, 98, 0.3);
-    border-radius: 50%;
-    border-top-color: var(--pink);
-    animation: spin 1s infinite linear;
-}
-
+/* Prevent image flicker */
 img {
-    opacity: 1;
-    transition: opacity 0.3s ease;
+    opacity: 1 !important;
+    transition: none !important;
 }
-.blog-card:hover .blog-image img {
-transform: scale(1.1);
+
+/* Force full opacity on loaded images */
+img[src] {
+    opacity: 1 !important;
 }
-.blog-content {
-padding: 2rem;
-}
-.blog-meta {
-display: flex;
-gap: 1rem;
-color: #666;
-font-size: 0.875rem;
-margin-bottom: 1rem;
-}
-.blog-title {
-font-family: var(--font-heading);
-font-size: 1.5rem;
-margin-bottom: 1rem;
-}
-.blog-excerpt {
-color: #666;
-margin-bottom: 1.5rem;
-}
-.blog-link {
-color: var(--pink);
-text-decoration: none;
-font-weight: 500;
-display: flex;
-align-items: center;
-gap: 0.5rem;
-transition: gap 0.3s ease;
-}
-.blog-link:hover {
-gap: 1rem;
+
+/* Remove all animation classes */
+[data-scroll],
+.animate-float,
+.animate-pulse,
+.loading-animation,
+.service-card {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
 }
 /* Newsletter Section */
 .newsletter {
@@ -1815,76 +1786,50 @@ const RAF = {
         this.elements.delete(element);
     }
 };
-
 class LoadingScreen {
     constructor() {
-        this.screen = $('.loading-screen');
-        this.imagePromises = [];
+        this.screen = document.querySelector('.loading-screen');
         this.init();
     }
 
     init() {
-        // Keep body in loading state
-        document.body.style.visibility = 'hidden';
+        // Hide page initially
+        document.body.style.opacity = '0';
         
-        // Create promises for all images
-        const images = document.querySelectorAll('img');
-        this.imagePromises = Array.from(images).map(img => {
-            return new Promise((resolve, reject) => {
-                // If image is already loaded
-                if (img.complete) {
-                    resolve();
-                } else {
-                    // If image is still loading
-                    img.onload = resolve;
-                    img.onerror = resolve; // Resolve even on error to prevent hanging
-                }
-                
-                // Force load the image
-                const src = img.src;
-                img.src = '';
-                img.src = src;
+        // Create array of all image promises
+        const imagePromises = Array.from(document.querySelectorAll('img')).map(img => {
+            return new Promise((resolve) => {
+                const image = new Image();
+                image.onload = resolve;
+                image.onerror = resolve; // Handle errors gracefully
+                image.src = img.src;
             });
         });
 
-        // Add promises for preloaded resources
-        document.querySelectorAll('link[rel="preload"][as="image"]').forEach(link => {
-            this.imagePromises.push(
-                new Promise((resolve) => {
-                    const img = new Image();
-                    img.src = link.href;
-                    img.onload = resolve;
-                    img.onerror = resolve;
-                })
-            );
-        });
-
-        // Wait for all images to load
-        Promise.all(this.imagePromises)
+        // Wait for ALL images to load
+        Promise.all(imagePromises)
             .then(() => {
-                // Small delay to ensure smooth transition
+                // Once all images are loaded, show the page
+                this.screen.style.opacity = '0';
+                document.body.style.opacity = '1';
+                
+                // Remove loader
                 setTimeout(() => {
-                    this.revealPage();
-                }, 300);
+                    this.screen.remove();
+                    document.body.classList.remove('loading');
+                }, 500);
             })
             .catch(() => {
-                // Fallback after 5 seconds if something goes wrong
-                setTimeout(() => this.revealPage(), 5000);
+                // Fallback if something goes wrong
+                console.warn('Some images failed to load');
+                this.screen.style.opacity = '0';
+                document.body.style.opacity = '1';
+                
+                setTimeout(() => {
+                    this.screen.remove();
+                    document.body.classList.remove('loading');
+                }, 500);
             });
-    }
-
-    revealPage() {
-        // Remove loading screen
-        this.screen?.classList.add('loaded');
-        
-        // Show the page
-        document.body.style.visibility = 'visible';
-        
-        // Clean up
-        setTimeout(() => {
-            this.screen?.remove();
-            document.body.classList.remove('loading');
-        }, 300);
     }
 }
 // Enhanced custom cursor
@@ -2100,12 +2045,16 @@ class FormHandler {
         setTimeout(() => message.remove(), 3000);
     }
 }
-// At the bottom of your script
 document.addEventListener('DOMContentLoaded', () => {
-    new LoadingScreen();
-    new CustomCursor();
-    new MobileMenu();
-    new SmoothScroll();
-    new FormHandler();
+    // Initialize loading screen first
+    const loader = new LoadingScreen();
+
+    // Initialize other components after page is visible
+    setTimeout(() => {
+        new CustomCursor();
+        new MobileMenu();
+        new SmoothScroll();
+        new FormHandler();
+    }, 500);
 });
 </script>
