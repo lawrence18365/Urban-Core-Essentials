@@ -1186,28 +1186,95 @@ body {
     opacity: 1;
     transition: opacity 0.5s ease;
 }
-
-/* Prevent image flicker */
-img {
-    opacity: 1 !important;
-    transition: none !important;
+/* Replace with these proper loading styles */
+.loading {
+    overflow: hidden;
 }
 
-/* Force full opacity on loaded images */
-img[src] {
-    opacity: 1 !important;
+.loading img {
+    opacity: 0;
+    transition: opacity 0.5s ease;
 }
 
-/* Remove all animation classes */
-[data-scroll],
-.animate-float,
-.animate-pulse,
-.loading-animation,
-.service-card {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-    transition: none !important;
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.loading-screen.loaded {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loading-animation {
+    width: 100px;
+    height: 100px;
+    border: 3px solid rgba(255, 28, 98, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--pink);
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Image loading */
+.service-image img {
+    opacity: 0;
+    transition: opacity 0.5s ease, transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.service-image img.loaded {
+    opacity: 1;
+}
+
+/* Ensure smooth transitions */
+.scroll-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: var(--dark);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.scroll-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+body {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+body.loaded {
+    opacity: 1;
 }
 /* Newsletter Section */
 .newsletter {
