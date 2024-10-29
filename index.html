@@ -1789,107 +1789,171 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
 <div class="mobile-menu-overlay"></div>
 </body>
 </html>
-<script>// Utility functions
+<script>
+// Utility functions
 const $ = selector => document.querySelector(selector);
 const $$ = selector => document.querySelectorAll(selector);
 
-// Ensure scroll position is maintained
-if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-}
-
-// Loading Screen Handler
-class LoadingScreen {
+// Site Handler - Single Class Pattern
+class SiteHandler {
     constructor() {
-        this.screen = $('.loading-screen');
-        this.hasLoaded = false;
+        // Core elements
+        this.body = document.body;
+        this.loadingScreen = $('.loading-screen');
+        this.header = $('.header');
+        this.scrollTopButton = $('#scrollTop');
+        this.mobileMenuToggle = $('.mobile-menu-toggle');
+        this.nav = $('.nav');
+        this.mobileOverlay = $('.mobile-menu-overlay');
+        
+        // State
+        this.isLoaded = false;
+        this.isMenuOpen = false;
+        this.lastScrollPosition = 0;
+        this.scrollThreshold = 300;
+        
+        // Initialize
         this.init();
     }
 
     init() {
-        if (!this.hasLoaded) {
-            document.body.style.opacity = '0';
-            this.screen.style.display = 'flex';
-
-            window.addEventListener('load', () => {
-                this.completeLoading();
-            });
-
-            setTimeout(() => {
-                this.completeLoading();
-            }, 5000);
-        }
+        // Handle initial loading
+        this.handleLoading();
+        
+        // Initialize scrolling features after load
+        this.initScrollHandlers();
+        
+        // Initialize mobile menu
+        this.initMobileMenu();
+        
+        // Initialize smooth scroll
+        this.initSmoothScroll();
+        
+        // Initialize forms
+        this.initForms();
     }
 
-    completeLoading() {
-        if (!this.hasLoaded) {
-            this.hasLoaded = true;
-            this.screen.style.opacity = '0';
-            document.body.style.opacity = '1';
+    handleLoading() {
+        // Set initial states
+        this.body.style.opacity = '0';
+        
+        // Handle page load
+        const completeLoading = () => {
+            if (this.isLoaded) return;
+            
+            this.isLoaded = true;
+            this.loadingScreen.style.opacity = '0';
+            this.body.style.opacity = '1';
             
             setTimeout(() => {
-                this.screen.style.display = 'none';
-                document.body.classList.remove('loading');
+                this.loadingScreen.style.display = 'none';
+                this.body.classList.remove('loading');
+                // Check scroll position immediately after load
+                this.handleScroll();
             }, 500);
-        }
-    }
-}
+        };
 
-// Mobile Menu Handler
-class MobileMenu {
-    constructor() {
-        this.toggle = $('.mobile-menu-toggle');
-        this.nav = $('.nav');
-        this.overlay = $('.mobile-menu-overlay');
-        this.isOpen = false;
-        this.init();
+        // Listen for load event
+        window.addEventListener('load', completeLoading);
+        
+        // Failsafe
+        setTimeout(completeLoading, 2000);
     }
 
-    init() {
-        if (!this.toggle || !this.nav) return;
+    initScrollHandlers() {
+        let ticking = false;
         
-        this.toggle.addEventListener('click', () => this.toggleMenu());
-        this.overlay?.addEventListener('click', () => this.closeMenu());
+        const handleScroll = () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    this.handleScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+
+        // Add scroll listener once
+        window.addEventListener('scroll', handleScroll, { passive: true });
         
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape' && this.isOpen) this.closeMenu();
+        // Handle scroll-to-top button click
+        this.scrollTopButton?.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         });
     }
 
-    toggleMenu() {
-        this.isOpen = !this.isOpen;
+    handleScroll() {
+        const scrollPosition = window.pageYOffset;
+        
+        // Handle header
+        if (this.header) {
+            if (scrollPosition > 100) {
+                this.header.classList.add('scrolled');
+            } else {
+                this.header.classList.remove('scrolled');
+            }
+        }
+        
+        // Handle scroll-to-top button
+        if (this.scrollTopButton) {
+            if (scrollPosition > this.scrollThreshold) {
+                this.scrollTopButton.classList.add('visible');
+            } else {
+                this.scrollTopButton.classList.remove('visible');
+            }
+        }
+        
+        this.lastScrollPosition = scrollPosition;
+    }
+
+    initMobileMenu() {
+        if (!this.mobileMenuToggle || !this.nav) return;
+
+        this.mobileMenuToggle.addEventListener('click', () => {
+            this.toggleMobileMenu();
+        });
+
+        this.mobileOverlay?.addEventListener('click', () => {
+            this.closeMobileMenu();
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && this.isMenuOpen) {
+                this.closeMobileMenu();
+            }
+        });
+    }
+
+    toggleMobileMenu() {
+        this.isMenuOpen = !this.isMenuOpen;
         this.nav.classList.toggle('active');
-        this.overlay?.classList.toggle('active');
-        document.body.style.overflow = this.isOpen ? 'hidden' : '';
+        this.mobileOverlay?.classList.toggle('active');
+        this.body.style.overflow = this.isMenuOpen ? 'hidden' : '';
     }
 
-    closeMenu() {
-        if (!this.isOpen) return;
-        this.isOpen = false;
+    closeMobileMenu() {
+        if (!this.isMenuOpen) return;
+        this.isMenuOpen = false;
         this.nav.classList.remove('active');
-        this.overlay?.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-}
-
-// Smooth Scroll Handler
-class SmoothScroll {
-    constructor() {
-        this.links = $$('a[href^="#"]');
-        this.header = $('.header');
-        this.headerHeight = this.header?.offsetHeight || 0;
-        this.init();
+        this.mobileOverlay?.classList.remove('active');
+        this.body.style.overflow = '';
     }
 
-    init() {
-        this.links.forEach(link => {
+    initSmoothScroll() {
+        const links = $$('a[href^="#"]');
+        const headerHeight = this.header?.offsetHeight || 0;
+
+        links.forEach(link => {
             link.addEventListener('click', e => {
                 e.preventDefault();
                 const target = $(link.getAttribute('href'));
                 if (!target) return;
 
-                const top = target.offsetTop - this.headerHeight;
-                
+                const top = target.offsetTop - headerHeight;
                 window.scrollTo({
                     top,
                     behavior: 'smooth'
@@ -1897,25 +1961,28 @@ class SmoothScroll {
             });
         });
     }
-}
 
-// Form Handler
+    initForms() {
+        const forms = $$('form');
+        forms.forEach(form => {
+            new FormHandler(form);
+        });
+    }
+}
 class FormHandler {
-    constructor() {
-        this.forms = $$('form');
+    constructor(form) {
+        this.form = form;
         this.init();
     }
 
     init() {
-        this.forms.forEach(form => {
-            form.setAttribute('novalidate', '');
-            form.addEventListener('submit', e => this.handleSubmit(e));
-            
-            const inputs = form.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => {
-                input.addEventListener('blur', () => this.validateField(input));
-                input.addEventListener('input', () => this.clearError(input));
-            });
+        this.form.setAttribute('novalidate', '');
+        this.form.addEventListener('submit', e => this.handleSubmit(e));
+        
+        const inputs = this.form.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('blur', () => this.validateField(input));
+            input.addEventListener('input', () => this.clearError(input));
         });
     }
 
@@ -1958,137 +2025,53 @@ class FormHandler {
 
     async handleSubmit(e) {
         e.preventDefault();
-        const form = e.target;
         
         let isValid = true;
-        const fields = form.querySelectorAll('input, textarea, select');
+        const fields = this.form.querySelectorAll('input, textarea, select');
         fields.forEach(field => {
             if (!this.validateField(field)) isValid = false;
         });
         
         if (!isValid) return;
 
-        const submitBtn = form.querySelector('[type="submit"]');
+        const submitBtn = this.form.querySelector('[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.disabled = true;
         submitBtn.innerHTML = 'Sending...';
 
         try {
+            // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 1000));
-            this.showMessage(form, 'success', 'Thank you! Message sent successfully.');
-            form.reset();
+            this.showMessage('success', 'Thank you! Message sent successfully.');
+            this.form.reset();
         } catch (error) {
-            this.showMessage(form, 'error', 'An error occurred. Please try again.');
+            this.showMessage('error', 'An error occurred. Please try again.');
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         }
     }
 
-    showMessage(form, type, text) {
+    showMessage(type, text) {
+        // Remove any existing messages
+        const existingMessage = this.form.querySelector('.form-message');
+        if (existingMessage) existingMessage.remove();
+
+        // Create and show new message
         const message = document.createElement('div');
         message.className = `form-message ${type}`;
         message.textContent = text;
-        form.appendChild(message);
-        setTimeout(() => message.remove(), 3000);
-    }
-}
-
-// Scroll to Top Handler
-class ScrollTop {
-    constructor() {
-        this.button = $('#scrollTop');
-        this.visible = false;
-        this.scrollThreshold = 300;
-        this.init();
-    }
-
-    init() {
-        if (!this.button) return;
-
-        // Immediate check
-        requestAnimationFrame(() => {
-            this.checkScroll();
-        });
-
-        // Throttled scroll listener
-        let ticking = false;
-        window.addEventListener('scroll', () => {
-            if (!ticking) {
-                requestAnimationFrame(() => {
-                    this.checkScroll();
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        });
-
-        this.button.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-    }
-
-    checkScroll() {
-        const shouldBeVisible = window.pageYOffset > this.scrollThreshold;
+        this.form.appendChild(message);
         
-        if (shouldBeVisible !== this.visible) {
-            this.visible = shouldBeVisible;
-            this.button.classList.toggle('visible', shouldBeVisible);
-        }
+        // Auto-remove message after delay
+        setTimeout(() => {
+            message.remove();
+        }, 3000);
     }
 }
 
-// Header Scroll Handler
-class HeaderScroll {
-    constructor() {
-        this.header = $('.header');
-        this.lastScroll = 0;
-        this.init();
-    }
-
-    init() {
-        if (!this.header) return;
-
-        // Immediate check
-        requestAnimationFrame(() => {
-            this.updateHeaderState();
-        });
-
-        // Throttled scroll listener
-        let ticking = false;
-        window.addEventListener('scroll', () => {
-            if (!ticking) {
-                requestAnimationFrame(() => {
-                    this.updateHeaderState();
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        });
-    }
-
-    updateHeaderState() {
-        if (window.pageYOffset > 100) {
-            this.header.classList.add('scrolled');
-        } else {
-            this.header.classList.remove('scrolled');
-        }
-    }
-}
-
-// Single initialization point
+// Complete script should include all previous code plus this completed FormHandler class
 document.addEventListener('DOMContentLoaded', () => {
-    window.siteHandlers = {
-        loadingScreen: new LoadingScreen(),
-        mobileMenu: new MobileMenu(),
-        smoothScroll: new SmoothScroll(),
-        formHandler: new FormHandler(),
-        scrollTop: new ScrollTop(),
-        headerScroll: new HeaderScroll()
-    };
+    window.site = new SiteHandler();
 });
 </script>
