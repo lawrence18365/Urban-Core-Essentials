@@ -52,6 +52,38 @@
             line-height: 1.2;
             letter-spacing: -0.02em;
         }
+/* Scroll to Top Button */
+.scroll-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: var(--dark);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.scroll-top:hover {
+    background: var(--pink);
+    transform: translateY(-3px);
+}
+
+.scroll-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
 
         h1 {
             font-size: clamp(3.5rem, 5vw, 5rem);
@@ -1976,22 +2008,31 @@ class ScrollTop {
     constructor() {
         this.button = $('#scrollTop');
         this.visible = false;
+        this.scrollThreshold = 300; // Show button after scrolling this many pixels
         this.init();
     }
 
     init() {
         if (!this.button) return;
 
-        // Use throttled scroll listener
-        let lastScroll = 0;
+        // Initial check
+        this.checkScroll();
+
+        // Add scroll event listener with throttling
+        let ticking = false;
         window.addEventListener('scroll', () => {
-            if (Date.now() - lastScroll > 100) {  // Throttle to every 100ms
-                this.updateButtonVisibility();
-                lastScroll = Date.now();
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    this.checkScroll();
+                    ticking = false;
+                });
+                ticking = true;
             }
         });
 
-        this.button.addEventListener('click', () => {
+        // Add click event listener
+        this.button.addEventListener('click', (e) => {
+            e.preventDefault();
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'
@@ -1999,15 +2040,30 @@ class ScrollTop {
         });
     }
 
-    updateButtonVisibility() {
-        const shouldBeVisible = window.pageYOffset > 100;
-        if (this.visible !== shouldBeVisible) {
+    checkScroll() {
+        const shouldBeVisible = window.pageYOffset > this.scrollThreshold;
+        
+        if (shouldBeVisible !== this.visible) {
             this.visible = shouldBeVisible;
-            this.button.style.opacity = shouldBeVisible ? '1' : '0';
-            this.button.style.visibility = shouldBeVisible ? 'visible' : 'hidden';
+            this.button.classList.toggle('visible', shouldBeVisible);
         }
     }
 }
+
+// Make sure to update the initialization code:
+document.addEventListener('DOMContentLoaded', () => {
+    const classes = {
+        loadingScreen: new LoadingScreen(),
+        mobileMenu: new MobileMenu(),
+        smoothScroll: new SmoothScroll(),
+        formHandler: new FormHandler(),
+        scrollTop: new ScrollTop(),
+        headerScroll: new HeaderScroll()
+    };
+    
+    // Store instances in window for debugging if needed
+    window.siteHandlers = classes;
+});
 
 // Improved Header Scroll Handler
 class HeaderScroll {
