@@ -1766,34 +1766,40 @@ const $$ = selector => document.querySelectorAll(selector);
 class LoadingScreen {
     constructor() {
         this.screen = $('.loading-screen');
+        this.hasLoaded = false;  // Add a flag to track initial load
         this.init();
     }
 
     init() {
-        // Hide content initially
-        document.body.style.opacity = '0';
-        this.screen.style.display = 'flex';
+        // Only handle loading if we haven't loaded before
+        if (!this.hasLoaded) {
+            // Hide content initially
+            document.body.style.opacity = '0';
+            this.screen.style.display = 'flex';
 
-        // Watch for all content to load
-        window.addEventListener('load', () => {
-            // Set a small timeout to ensure images are rendered
+            // Watch for all content to load
+            window.addEventListener('load', () => {
+                this.completeLoading();
+            });
+
+            // Failsafe - remove loader after 5s no matter what
             setTimeout(() => {
-                this.screen.style.opacity = '0';
-                document.body.style.opacity = '1';
-                
-                setTimeout(() => {
-                    this.screen.style.display = 'none';
-                    document.body.classList.remove('loading');
-                }, 500);
-            }, 500);
-        });
+                this.completeLoading();
+            }, 5000);
+        }
+    }
 
-        // Failsafe - remove loader after 5s no matter what
-        setTimeout(() => {
-            this.screen.style.display = 'none';
+    completeLoading() {
+        if (!this.hasLoaded) {  // Only run once
+            this.hasLoaded = true;
+            this.screen.style.opacity = '0';
             document.body.style.opacity = '1';
-            document.body.classList.remove('loading');
-        }, 5000);
+            
+            setTimeout(() => {
+                this.screen.style.display = 'none';
+                document.body.classList.remove('loading');
+            }, 500);
+        }
     }
 }
 
@@ -1834,12 +1840,13 @@ class MobileMenu {
     }
 }
 
-// Smooth Scroll Handler
+// Smooth Scroll Handler with improved behavior
 class SmoothScroll {
     constructor() {
         this.links = $$('a[href^="#"]');
         this.header = $('.header');
         this.headerHeight = this.header?.offsetHeight || 0;
+        this.scrolling = false;  // Add flag to track active scrolling
         this.init();
     }
 
@@ -1851,10 +1858,19 @@ class SmoothScroll {
                 if (!target) return;
 
                 const top = target.offsetTop - this.headerHeight;
+                
+                // Set scrolling flag
+                this.scrolling = true;
+                
                 window.scrollTo({
                     top,
                     behavior: 'smooth'
                 });
+
+                // Reset scrolling flag after animation
+                setTimeout(() => {
+                    this.scrolling = false;
+                }, 1000);
             });
         });
     }
@@ -1955,23 +1971,23 @@ class FormHandler {
     }
 }
 
-// Scroll to Top Handler
+// Improved Scroll to Top Handler
 class ScrollTop {
     constructor() {
         this.button = $('#scrollTop');
+        this.visible = false;
         this.init();
     }
 
     init() {
         if (!this.button) return;
 
+        // Use throttled scroll listener
+        let lastScroll = 0;
         window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 100) {
-                this.button.style.opacity = '1';
-                this.button.style.visibility = 'visible';
-            } else {
-                this.button.style.opacity = '0';
-                this.button.style.visibility = 'hidden';
+            if (Date.now() - lastScroll > 100) {  // Throttle to every 100ms
+                this.updateButtonVisibility();
+                lastScroll = Date.now();
             }
         });
 
@@ -1982,38 +1998,58 @@ class ScrollTop {
             });
         });
     }
+
+    updateButtonVisibility() {
+        const shouldBeVisible = window.pageYOffset > 100;
+        if (this.visible !== shouldBeVisible) {
+            this.visible = shouldBeVisible;
+            this.button.style.opacity = shouldBeVisible ? '1' : '0';
+            this.button.style.visibility = shouldBeVisible ? 'visible' : 'hidden';
+        }
+    }
 }
 
-// Header Scroll Handler
+// Improved Header Scroll Handler
 class HeaderScroll {
     constructor() {
         this.header = $('.header');
+        this.lastScroll = 0;
         this.init();
     }
 
     init() {
         if (!this.header) return;
 
+        // Use throttled scroll listener
         window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 100) {
-                this.header.classList.add('scrolled');
-            } else {
-                this.header.classList.remove('scrolled');
+            if (Date.now() - this.lastScroll > 100) {  // Throttle to every 100ms
+                this.updateHeaderState();
+                this.lastScroll = Date.now();
             }
         });
+    }
+
+    updateHeaderState() {
+        if (window.pageYOffset > 100) {
+            this.header.classList.add('scrolled');
+        } else {
+            this.header.classList.remove('scrolled');
+        }
     }
 }
 
 // Initialize Everything
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize loading screen first
-    new LoadingScreen();
-
-    // Initialize everything else
-    new MobileMenu();
-    new SmoothScroll();
-    new FormHandler();
-    new ScrollTop();
-    new HeaderScroll();
+    const classes = {
+        loadingScreen: new LoadingScreen(),
+        mobileMenu: new MobileMenu(),
+        smoothScroll: new SmoothScroll(),
+        formHandler: new FormHandler(),
+        scrollTop: new ScrollTop(),
+        headerScroll: new HeaderScroll()
+    };
+    
+    // Store instances in window for debugging if needed
+    window.siteHandlers = classes;
 });
 </script>
