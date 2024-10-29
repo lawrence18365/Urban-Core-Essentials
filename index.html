@@ -888,15 +888,38 @@ animation: cursor-hover 2s infinite;
 }
 }
 /* Loading Animation */
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 .loading-screen {
-position: fixed;
-inset: 0;
-background: var(--dark);
-display: flex;
-align-items: center;
-justify-content: center;
-z-index: 9999;
-transition: opacity 0.5s ease, visibility 0.5s ease;
+    position: fixed;
+    inset: 0;
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 1; /* Was missing explicit opacity */
+    visibility: visible; /* Was missing explicit visibility */
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.loading-screen.loaded {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* Prevent interaction after hidden */
+}
+
+.loading-animation {
+    width: 100px;
+    height: 100px;
+    border: 3px solid rgba(255, 28, 98, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--pink);
+    animation: spin 1s infinite linear;
 }
 body.loading {
     overflow: hidden;
@@ -2196,71 +2219,121 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start animation frame loop
     RAF.update();
 });
-// Enhanced Service Cards Loading
+// Fixed ServiceCards Implementation
 class ServiceCards {
     constructor() {
         this.cards = document.querySelectorAll('.service-card');
         this.grid = document.querySelector('.services-grid');
         this.loadedImages = 0;
         this.totalImages = this.cards.length;
+        this.timeoutDuration = 3000; // Fallback timeout
         this.init();
     }
 
     init() {
         if (!this.cards.length) return;
 
-        // Pre-load all images
+        // Set initial states
+        this.grid.style.opacity = '0';
+        this.cards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+        });
+
+        // Start loading images
         this.cards.forEach((card, index) => {
             const img = card.querySelector('img');
             const imageContainer = card.querySelector('.service-image');
             
-            if (img) {
-                // Create new image object to preload
-                const preloadImg = new Image();
+            if (!img || !imageContainer) return;
+
+            // Add loading state
+            imageContainer.classList.add('loading');
+            
+            const preloadImg = new Image();
+            
+            preloadImg.onload = () => {
+                this.loadedImages++;
                 
-                preloadImg.onload = () => {
-                    this.loadedImages++;
+                // Sequence of animations
+                setTimeout(() => {
+                    imageContainer.classList.remove('loading');
                     imageContainer.classList.add('loaded');
                     img.style.opacity = '1';
-                    
-                    // Add delay between each card appearance
-                    setTimeout(() => {
-                        card.classList.add('loaded');
-                    }, index * 100);
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
 
-                    // When all images are loaded, show the grid
-                    if (this.loadedImages === this.totalImages) {
-                        this.grid.classList.add('loaded');
-                    }
-                };
+                if (this.loadedImages === this.totalImages) {
+                    this.grid.style.opacity = '1';
+                    this.grid.classList.add('loaded');
+                }
+            };
 
-                preloadImg.src = img.src;
-            }
+            preloadImg.onerror = () => {
+                console.error(`Failed to load image: ${img.src}`);
+                this.handleImageError(card, imageContainer);
+            };
+
+            preloadImg.src = img.src;
         });
 
-        // Fallback in case some images fail to load
+        // Fallback for failed loads
+        this.setLoadingTimeout();
+    }
+
+    handleImageError(card, imageContainer) {
+        imageContainer.classList.remove('loading');
+        imageContainer.classList.add('error');
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+        
+        // Increment counter to prevent hanging
+        this.loadedImages++;
+        
+        if (this.loadedImages === this.totalImages) {
+            this.grid.style.opacity = '1';
+            this.grid.classList.add('loaded');
+        }
+    }
+
+    setLoadingTimeout() {
         setTimeout(() => {
             if (!this.grid.classList.contains('loaded')) {
+                console.warn('Loading timeout reached, forcing display');
+                this.grid.style.opacity = '1';
                 this.grid.classList.add('loaded');
-                this.cards.forEach(card => card.classList.add('loaded'));
+                
+                this.cards.forEach(card => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                    const imageContainer = card.querySelector('.service-image');
+                    if (imageContainer) {
+                        imageContainer.classList.remove('loading');
+                        imageContainer.classList.add('loaded');
+                    }
+                });
             }
-        }, 3000);
+        }, this.timeoutDuration);
     }
 }
 
-// Update the initialization in your main script
+
+// 4. Initialization Fix
 document.addEventListener('DOMContentLoaded', () => {
-    // Your existing initializations...
-    new LoadingScreen();
-    new ScrollReveal();
-    new CustomCursor();
-    new MobileMenu();
-    new SmoothScroll();
-    new FormHandler();
+    // Ensure body has loading class initially
+    document.body.classList.add('loading');
     
-    // Add the new ServiceCards initialization
-    new ServiceCards();
+    // Initialize components
+    const loader = new LoadingScreen();
+    const serviceCards = new ServiceCards();
     
-    RAF.update();
+    // Remove loading class when everything is ready
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            document.body.classList.remove('loading');
+            loader.remove();
+        }, 500); // Small delay for smoother transition
+    });
 });
 </script>
