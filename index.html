@@ -232,7 +232,6 @@
             font-weight: 300;
             opacity: 0.9;
         }
-/* Replace your services CSS with this simplified version */
 .services-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -267,11 +266,22 @@
     font-family: var(--font-heading);
     font-size: 1.5rem;
     margin-bottom: 1rem;
+    position: relative;
+}
+
+.service-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 40px;
+    height: 2px;
+    background: var(--pink);
 }
 
 .service-description {
     color: #666;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .service-price {
@@ -285,48 +295,32 @@
     color: var(--dark);
     text-decoration: none;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
-        .service-content {
-            padding: 2rem;
-        }
 
-        .service-title {
-            font-family: var(--font-heading);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            position: relative;
-            display: inline-block;
-        }
+.service-link:hover {
+    color: var(--pink);
+}
 
-        .service-title::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -4px;
-            width: 40px;
-            height: 2px;
-            background: var(--pink);
-        }
+.section-header-black {
+    text-align: center;
+    margin-bottom: 4rem;
+}
 
-        .service-description {
-            color: #666;
-            margin-bottom: 1.5rem;
-        }
+.section-header-black h2 {
+    font-family: var(--font-heading);
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    margin-bottom: 1rem;
+    color: black;
+}
 
-        .service-link {
-            color: var(--dark);
-            text-decoration: none;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .service-link:hover {
-            color: var(--pink);
-            gap: 1rem;
-        }
-
+.section-header-black p {
+    color: #666;
+    font-size: clamp(1rem, 1.2vw, 1.25rem);
+    line-height: 1.8;
+}
 /* About Section */
 .about {
 position: relative;
