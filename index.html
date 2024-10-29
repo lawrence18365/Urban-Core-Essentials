@@ -1794,27 +1794,28 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
 const $ = selector => document.querySelector(selector);
 const $$ = selector => document.querySelectorAll(selector);
 
+// Ensure scroll position is maintained
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
 // Loading Screen Handler
 class LoadingScreen {
     constructor() {
         this.screen = $('.loading-screen');
-        this.hasLoaded = false;  // Add a flag to track initial load
+        this.hasLoaded = false;
         this.init();
     }
 
     init() {
-        // Only handle loading if we haven't loaded before
         if (!this.hasLoaded) {
-            // Hide content initially
             document.body.style.opacity = '0';
             this.screen.style.display = 'flex';
 
-            // Watch for all content to load
             window.addEventListener('load', () => {
                 this.completeLoading();
             });
 
-            // Failsafe - remove loader after 5s no matter what
             setTimeout(() => {
                 this.completeLoading();
             }, 5000);
@@ -1822,7 +1823,7 @@ class LoadingScreen {
     }
 
     completeLoading() {
-        if (!this.hasLoaded) {  // Only run once
+        if (!this.hasLoaded) {
             this.hasLoaded = true;
             this.screen.style.opacity = '0';
             document.body.style.opacity = '1';
@@ -1872,13 +1873,12 @@ class MobileMenu {
     }
 }
 
-// Smooth Scroll Handler with improved behavior
+// Smooth Scroll Handler
 class SmoothScroll {
     constructor() {
         this.links = $$('a[href^="#"]');
         this.header = $('.header');
         this.headerHeight = this.header?.offsetHeight || 0;
-        this.scrolling = false;  // Add flag to track active scrolling
         this.init();
     }
 
@@ -1891,18 +1891,10 @@ class SmoothScroll {
 
                 const top = target.offsetTop - this.headerHeight;
                 
-                // Set scrolling flag
-                this.scrolling = true;
-                
                 window.scrollTo({
                     top,
                     behavior: 'smooth'
                 });
-
-                // Reset scrolling flag after animation
-                setTimeout(() => {
-                    this.scrolling = false;
-                }, 1000);
             });
         });
     }
@@ -2003,26 +1995,28 @@ class FormHandler {
     }
 }
 
-// Improved Scroll to Top Handler
+// Scroll to Top Handler
 class ScrollTop {
     constructor() {
         this.button = $('#scrollTop');
         this.visible = false;
-        this.scrollThreshold = 300; // Show button after scrolling this many pixels
+        this.scrollThreshold = 300;
         this.init();
     }
 
     init() {
         if (!this.button) return;
 
-        // Initial check
-        this.checkScroll();
+        // Immediate check
+        requestAnimationFrame(() => {
+            this.checkScroll();
+        });
 
-        // Add scroll event listener with throttling
+        // Throttled scroll listener
         let ticking = false;
         window.addEventListener('scroll', () => {
             if (!ticking) {
-                window.requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
                     this.checkScroll();
                     ticking = false;
                 });
@@ -2030,7 +2024,6 @@ class ScrollTop {
             }
         });
 
-        // Add click event listener
         this.button.addEventListener('click', (e) => {
             e.preventDefault();
             window.scrollTo({
@@ -2050,22 +2043,7 @@ class ScrollTop {
     }
 }
 
-// Make sure to update the initialization code:
-document.addEventListener('DOMContentLoaded', () => {
-    const classes = {
-        loadingScreen: new LoadingScreen(),
-        mobileMenu: new MobileMenu(),
-        smoothScroll: new SmoothScroll(),
-        formHandler: new FormHandler(),
-        scrollTop: new ScrollTop(),
-        headerScroll: new HeaderScroll()
-    };
-    
-    // Store instances in window for debugging if needed
-    window.siteHandlers = classes;
-});
-
-// Improved Header Scroll Handler
+// Header Scroll Handler
 class HeaderScroll {
     constructor() {
         this.header = $('.header');
@@ -2076,11 +2054,20 @@ class HeaderScroll {
     init() {
         if (!this.header) return;
 
-        // Use throttled scroll listener
+        // Immediate check
+        requestAnimationFrame(() => {
+            this.updateHeaderState();
+        });
+
+        // Throttled scroll listener
+        let ticking = false;
         window.addEventListener('scroll', () => {
-            if (Date.now() - this.lastScroll > 100) {  // Throttle to every 100ms
-                this.updateHeaderState();
-                this.lastScroll = Date.now();
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    this.updateHeaderState();
+                    ticking = false;
+                });
+                ticking = true;
             }
         });
     }
@@ -2094,9 +2081,9 @@ class HeaderScroll {
     }
 }
 
-// Initialize Everything
+// Single initialization point
 document.addEventListener('DOMContentLoaded', () => {
-    const classes = {
+    window.siteHandlers = {
         loadingScreen: new LoadingScreen(),
         mobileMenu: new MobileMenu(),
         smoothScroll: new SmoothScroll(),
@@ -2104,8 +2091,5 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollTop: new ScrollTop(),
         headerScroll: new HeaderScroll()
     };
-    
-    // Store instances in window for debugging if needed
-    window.siteHandlers = classes;
 });
 </script>
