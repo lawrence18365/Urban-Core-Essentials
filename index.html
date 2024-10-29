@@ -8,6 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556910103-1c02745aae4d">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1531297484001-80022131f5a1">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1547592180-85f173990554">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1521791136064-7986c2920216">
 </head>
     <style>
         /* Base Styles */
@@ -226,17 +232,12 @@
             font-weight: 300;
             opacity: 0.9;
         }
-/* Service Cards Animation Fix */
+/* Replace your services CSS with this simplified version */
 .services-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
     margin-top: 4rem;
-    opacity: 0;
-}
-
-.services-grid.loaded {
-    opacity: 1;
 }
 
 .service-card {
@@ -246,39 +247,45 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-
 .service-image {
     height: 250px;
     overflow: hidden;
-    background: #f5f5f5;
-    position: relative;
-}
-
-.service-image::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, #f5f5f5 0%, #efefef 50%, #f5f5f5 100%);
-}
-
-.service-image.loaded::before {
-    display: none;
 }
 
 .service-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0;
+    display: block;
 }
 
-.service-image.loaded img {
-    opacity: 1;
+.service-content {
+    padding: 2rem;
 }
-      
+
+.service-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.service-description {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.service-price {
+    display: block;
+    color: var(--pink);
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.service-link {
+    color: var(--dark);
+    text-decoration: none;
+    font-weight: 500;
+}
         .service-content {
             padding: 2rem;
         }
@@ -1423,27 +1430,17 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
             </div>
         </div>
     </section>
-<!-- Services Section -->
 <section id="services" class="section">
     <div class="container">
-        <div class="section-header-black" >
+        <div class="section-header-black">
             <h2>Our Premium Services</h2>
             <p>Discover our comprehensive range of personalized home services tailored to your needs</p>
         </div>
         <div class="services-grid">
             <!-- Get Cooked Service -->
-            <div class="service-card" >
-                <div class="service-image-wrapper">
-                    <div class="service-image-placeholder">
-                        <div class="loading-spinner"></div>
-                    </div>
-                    <div class="service-image">
-                        <img 
-                            src="https://images.unsplash.com/photo-1556910103-1c02745aae4d" 
-                            alt="Professional Cooking Service"
-                            loading="eager"
-                        >
-                    </div>
+            <div class="service-card">
+                <div class="service-image">
+                    <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d" alt="Professional Cooking Service">
                 </div>
                 <div class="service-content">
                     <h3 class="service-title">Get Cooked</h3>
@@ -1454,18 +1451,9 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
             </div>
 
             <!-- NDIS Support Work -->
-            <div class="service-card" >
-                <div class="service-image-wrapper">
-                    <div class="service-image-placeholder">
-                        <div class="loading-spinner"></div>
-                    </div>
-                    <div class="service-image">
-                        <img 
-                            src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289" 
-                            alt="NDIS Support Services"
-                            loading="eager"
-                        >
-                    </div>
+            <div class="service-card">
+                <div class="service-image">
+                    <img src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289" alt="NDIS Support Services">
                 </div>
                 <div class="service-content">
                     <h3 class="service-title">NDIS Support Work</h3>
@@ -1476,18 +1464,9 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
             </div>
 
             <!-- IT Support -->
-            <div class="service-card" >
-                <div class="service-image-wrapper">
-                    <div class="service-image-placeholder">
-                        <div class="loading-spinner"></div>
-                    </div>
-                    <div class="service-image">
-                        <img 
-                            src="https://images.unsplash.com/photo-1531297484001-80022131f5a1" 
-                            alt="IT Support Services"
-                            loading="eager"
-                        >
-                    </div>
+            <div class="service-card">
+                <div class="service-image">
+                    <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1" alt="IT Support Services">
                 </div>
                 <div class="service-content">
                     <h3 class="service-title">IT Support</h3>
@@ -1499,17 +1478,8 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
 
             <!-- Customized Meal Prep -->
             <div class="service-card">
-                <div class="service-image-wrapper">
-                    <div class="service-image-placeholder">
-                        <div class="loading-spinner"></div>
-                    </div>
-                    <div class="service-image">
-                        <img 
-                            src="https://images.unsplash.com/photo-1547592180-85f173990554" 
-                            alt="Meal Preparation Service"
-                            loading="eager"
-                        >
-                    </div>
+                <div class="service-image">
+                    <img src="https://images.unsplash.com/photo-1547592180-85f173990554" alt="Meal Preparation Service">
                 </div>
                 <div class="service-content">
                     <h3 class="service-title">Customized Meal Prep</h3>
@@ -1520,18 +1490,9 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
             </div>
 
             <!-- Home Essentials Consultation -->
-            <div class="service-card" >
-                <div class="service-image-wrapper">
-                    <div class="service-image-placeholder">
-                        <div class="loading-spinner"></div>
-                    </div>
-                    <div class="service-image">
-                        <img 
-                            src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6" 
-                            alt="Home Consultation"
-                            loading="eager"
-                        >
-                    </div>
+            <div class="service-card">
+                <div class="service-image">
+                    <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6" alt="Home Consultation">
                 </div>
                 <div class="service-content">
                     <h3 class="service-title">Home Essentials Consultation</h3>
@@ -1542,18 +1503,9 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
             </div>
 
             <!-- Additional Services -->
-            <div class="service-card" >
-                <div class="service-image-wrapper">
-                    <div class="service-image-placeholder">
-                        <div class="loading-spinner"></div>
-                    </div>
-                    <div class="service-image">
-                        <img 
-                            src="https://images.unsplash.com/photo-1521791136064-7986c2920216" 
-                            alt="Additional Services"
-                            loading="eager"
-                        >
-                    </div>
+            <div class="service-card">
+                <div class="service-image">
+                    <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216" alt="Additional Services">
                 </div>
                 <div class="service-content">
                     <h3 class="service-title">Additional Services</h3>
@@ -1565,6 +1517,7 @@ box-shadow: 0 0 0 3px rgba(255, 28, 98, 0.3);
         </div>
     </div>
 </section>
+
     <!-- About Section -->
     <section id="about" class="section">
         <div class="container">
@@ -2112,105 +2065,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start animation frame loop
     RAF.update();
 });
-// Fixed ServiceCards Implementation
-class ServiceCards {
-    constructor() {
-        this.cards = document.querySelectorAll('.service-card');
-        this.grid = document.querySelector('.services-grid');
-        this.loadedImages = 0;
-        this.totalImages = this.cards.length;
-        this.timeoutDuration = 3000; // Fallback timeout
-        this.init();
-    }
-
-    init() {
-        if (!this.cards.length) return;
-
-        // Set initial states
-        this.grid.style.opacity = '0';
-        this.cards.forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-        });
-
-        // Start loading images
-        this.cards.forEach((card, index) => {
-            const img = card.querySelector('img');
-            const imageContainer = card.querySelector('.service-image');
-            
-            if (!img || !imageContainer) return;
-
-            // Add loading state
-            imageContainer.classList.add('loading');
-            
-            const preloadImg = new Image();
-            
-            preloadImg.onload = () => {
-                this.loadedImages++;
-                
-                // Sequence of animations
-                setTimeout(() => {
-                    imageContainer.classList.remove('loading');
-                    imageContainer.classList.add('loaded');
-                    img.style.opacity = '1';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 100);
-
-                if (this.loadedImages === this.totalImages) {
-                    this.grid.style.opacity = '1';
-                    this.grid.classList.add('loaded');
-                }
-            };
-
-            preloadImg.onerror = () => {
-                console.error(`Failed to load image: ${img.src}`);
-                this.handleImageError(card, imageContainer);
-            };
-
-            preloadImg.src = img.src;
-        });
-
-        // Fallback for failed loads
-        this.setLoadingTimeout();
-    }
-
-    handleImageError(card, imageContainer) {
-        imageContainer.classList.remove('loading');
-        imageContainer.classList.add('error');
-        card.style.opacity = '1';
-        card.style.transform = 'translateY(0)';
-        
-        // Increment counter to prevent hanging
-        this.loadedImages++;
-        
-        if (this.loadedImages === this.totalImages) {
-            this.grid.style.opacity = '1';
-            this.grid.classList.add('loaded');
-        }
-    }
-
-    setLoadingTimeout() {
-        setTimeout(() => {
-            if (!this.grid.classList.contains('loaded')) {
-                console.warn('Loading timeout reached, forcing display');
-                this.grid.style.opacity = '1';
-                this.grid.classList.add('loaded');
-                
-                this.cards.forEach(card => {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                    const imageContainer = card.querySelector('.service-image');
-                    if (imageContainer) {
-                        imageContainer.classList.remove('loading');
-                        imageContainer.classList.add('loaded');
-                    }
-                });
-            }
-        }, this.timeoutDuration);
-    }
-}
-
 
 // 4. Initialization Fix
 document.addEventListener('DOMContentLoaded', () => {
