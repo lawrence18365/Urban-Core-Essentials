@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,53 +32,54 @@
             scroll-behavior: smooth;
         }
 
-        body {
-            opacity: 1;
-            font-family: var(--font-body);
-            line-height: 1.6;
-            color: var(--dark);
-            margin: 0;
-            padding: 0;
-        }
+       /* Loading state styles */
+body {
+    opacity: 1; /* Change this to 1 */
+    visibility: visible;
+    font-family: var(--font-body);
+    line-height: 1.6;
+    color: var(--dark);
+    margin: 0;
+    padding: 0;
+}
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.8s ease, visibility 0s linear 0.8s;
+}
 
-        .loading-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--dark);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 99999;
-        }
+.loading-animation {
+    width: 100px;
+    height: 100px;
+    border: 3px solid rgba(255, 28, 98, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--pink);
+    animation: spin 1s infinite linear;
+}
 
-        .loading-animation {
-            width: 100px;
-            height: 100px;
-            border: 3px solid rgba(255, 28, 98, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--pink);
-            animation: spin 1s infinite linear;
-        }
+body.loaded {
+    opacity: 1;
+}
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+.loading-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
 
-        body.loaded {
-            opacity: 1;
-        }
-
-        .loading-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        img {
-            opacity: 1 !important;
-            transition: transform 0.3s ease !important;
-        }
-
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+ /* Update body loaded state */
+       
+   
         h1, h2, h3, h4, h5 {
             font-family: var(--font-heading);
             font-weight: 400;
@@ -1211,19 +1213,6 @@
     }
 }
 
-/* Enhanced Page Load Animations */
-body {
-     opacity: 0;
-    visibility: hidden;
-    transform: translateY(20px);
-    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s ease;
-}
-
-body.loaded {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
 
 
 /* Staggered Section Load Animations */
@@ -1288,12 +1277,6 @@ body.loaded {
 }
 
 
-.loading-screen.hidden {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.8s ease, visibility 0s linear 0.8s;
-}
-
 /* Service Card Hover Animations */
 .service-card {
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
@@ -1308,7 +1291,7 @@ body.loaded {
 </head>
 <body class="loading">
     <!-- Loading Screen -->
-    <div class="loading-screen" id="loadingScreen">
+     <div class="loading-screen" id="loadingScreen">
         <div class="loading-animation"></div>
     </div>
 
@@ -1662,25 +1645,55 @@ body.loaded {
     const $ = selector => document.querySelector(selector);
     const $$ = selector => document.querySelectorAll(selector);
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const site = new SiteHandler();
+   document.addEventListener('DOMContentLoaded', function() {
+    // Add loading class to body immediately
+    document.body.classList.add('loading');
+    
+    const site = new SiteHandler();
+    const aboutImageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, {
+        threshold: 0.2
+    });
 
-        Promise.all(Array.from(document.images).filter(img => !img.complete).map(img => {
+    // Observe about image
+    const aboutImage = document.querySelector('.about-image');
+    if (aboutImage) {
+        aboutImageObserver.observe(aboutImage);
+    }
+
+    // Single loading sequence
+    Promise.all([
+        // Wait for all images to load
+        Promise.all(Array.from(document.images).map(img => {
+            if (img.complete) return Promise.resolve();
             return new Promise(resolve => {
                 img.onload = resolve;
                 img.onerror = resolve;
             });
-        })).then(() => {
+        })),
+        // Minimum loading time of 1.5 seconds
+        new Promise(resolve => setTimeout(resolve, 1500))
+    ]).then(() => {
+        // First, hide the loading screen with fade out
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+        }
+        
+        // Remove loading class and add loaded class to body
+        document.body.classList.remove('loading');
+        
+        // After loading screen fade out, start page animations
+        setTimeout(() => {
             document.body.classList.add('loaded');
-            const loadingScreen = document.getElementById('loadingScreen');
-            if (loadingScreen) {
-                loadingScreen.classList.add('hidden');
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                }, 300);
-            }
-        });
+        }, 800);
     });
+});
 
     class SiteHandler {
         constructor() {
