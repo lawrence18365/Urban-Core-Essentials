@@ -1642,111 +1642,67 @@ body.loaded {
     <div class="mobile-menu-overlay"></div>
 
     <script>
-    const $ = selector => document.querySelector(selector);
-    const $$ = selector => document.querySelectorAll(selector);
+        const $ = selector => document.querySelector(selector);
+const $$ = selector => document.querySelectorAll(selector);
 
-   document.addEventListener('DOMContentLoaded', function() {
+class SiteHandler {
+    constructor() {
+        this.initializeElements();
+        this.bindEvents();
+    }
+
+    initializeElements() {
+        this.header = $('.header');
+        this.scrollTopButton = $('#scrollTop');
+        this.mobileMenuToggle = $('.mobile-menu-toggle');
+        this.nav = $('.nav');
+        this.mobileOverlay = $('.mobile-menu-overlay');
+    }
+
+    bindEvents() {
+        window.addEventListener('scroll', () => {
+            this.handleScroll();
+        }, { passive: true });
+
+        if (this.mobileMenuToggle) {
+            this.mobileMenuToggle.addEventListener('click', () => {
+                this.toggleMobileMenu();
+            });
+        }
+
+        if (this.scrollTopButton) {
+            this.scrollTopButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+    }
+
+    handleScroll() {
+        const scrollPos = window.pageYOffset;
+        
+        if (this.header) {
+            this.header.classList.toggle('scrolled', scrollPos > 100);
+        }
+        
+        if (this.scrollTopButton) {
+            this.scrollTopButton.classList.toggle('visible', scrollPos > 300);
+        }
+    }
+
+    toggleMobileMenu() {
+        this.nav?.classList.toggle('active');
+        this.mobileOverlay?.classList.toggle('active');
+        document.body.style.overflow = this.nav?.classList.contains('active') ? 'hidden' : '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
     // Add loading class to body immediately
     document.body.classList.add('loading');
     
     const site = new SiteHandler();
-    const aboutImageObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
-        });
-    }, {
-        threshold: 0.2
-    });
-
-    // Observe about image
-    const aboutImage = document.querySelector('.about-image');
-    if (aboutImage) {
-        aboutImageObserver.observe(aboutImage);
-    }
-
-    // Single loading sequence
-    Promise.all([
-        // Wait for all images to load
-        Promise.all(Array.from(document.images).map(img => {
-            if (img.complete) return Promise.resolve();
-            return new Promise(resolve => {
-                img.onload = resolve;
-                img.onerror = resolve;
-            });
-        })),
-        // Minimum loading time of 1.5 seconds
-        new Promise(resolve => setTimeout(resolve, 1500))
-    ]).then(() => {
-        // First, hide the loading screen with fade out
-        const loadingScreen = document.getElementById('loadingScreen');
-        if (loadingScreen) {
-            loadingScreen.classList.add('hidden');
-        }
-        
-        // Remove loading class and add loaded class to body
-        document.body.classList.remove('loading');
-        
-        // After loading screen fade out, start page animations
-        setTimeout(() => {
-            document.body.classList.add('loaded');
-        }, 800);
-    });
-});
-
-    class SiteHandler {
-        constructor() {
-            this.initializeElements();
-            this.bindEvents();
-        }
-
-        initializeElements() {
-            this.header = $('.header');
-            this.scrollTopButton = $('#scrollTop');
-            this.mobileMenuToggle = $('.mobile-menu-toggle');
-            this.nav = $('.nav');
-            this.mobileOverlay = $('.mobile-menu-overlay');
-        }
-
-        bindEvents() {
-            window.addEventListener('scroll', () => {
-                this.handleScroll();
-            }, { passive: true });
-
-            if (this.mobileMenuToggle) {
-                this.mobileMenuToggle.addEventListener('click', () => {
-                    this.toggleMobileMenu();
-                });
-            }
-
-            if (this.scrollTopButton) {
-                this.scrollTopButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                });
-            }
-        }
-
-        handleScroll() {
-            const scrollPos = window.pageYOffset;
-            
-            if (this.header) {
-                this.header.classList.toggle('scrolled', scrollPos > 100);
-            }
-            
-            if (this.scrollTopButton) {
-                this.scrollTopButton.classList.toggle('visible', scrollPos > 300);
-            }
-        }
-
-        toggleMobileMenu() {
-            this.nav?.classList.toggle('active');
-            this.mobileOverlay?.classList.toggle('active');
-            document.body.style.overflow = this.nav?.classList.contains('active') ? 'hidden' : '';
-        }
-    }
-document.addEventListener('DOMContentLoaded', function() {
+    
     // Create intersection observer for the about image
     const aboutImageObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -1764,31 +1720,37 @@ document.addEventListener('DOMContentLoaded', function() {
         aboutImageObserver.observe(aboutImage);
     }
 
-    // Handle loading sequence
-    Promise.all([
-        // Wait for all images to load
-        Promise.all(Array.from(document.images).map(img => {
+    // Optimized loading sequence
+    const loadingScreen = document.getElementById('loadingScreen');
+    
+    // Only wait for visible images
+    const visibleImages = Array.from(document.images).filter(img => {
+        const rect = img.getBoundingClientRect();
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= window.innerHeight &&
+            rect.right <= window.innerWidth
+        );
+    });
+
+    Promise.all(
+        visibleImages.map(img => {
             if (img.complete) return Promise.resolve();
             return new Promise(resolve => {
                 img.onload = resolve;
                 img.onerror = resolve;
             });
-        })),
-        // Minimum loading time of 1.5 seconds
-        new Promise(resolve => setTimeout(resolve, 1500))
-    ]).then(() => {
-        // First, hide the loading screen with fade out
-        const loadingScreen = document.getElementById('loadingScreen');
+        })
+    ).then(() => {
         if (loadingScreen) {
             loadingScreen.classList.add('hidden');
         }
         
-        // After loading screen fade out, start page animations
-        setTimeout(() => {
-            document.body.classList.add('loaded');
-        }, 800); // This matches the loading screen fade out duration
+        document.body.classList.remove('loading');
+        document.body.classList.add('loaded');
     });
 });
-</script>
+    </script>
 </body>
 </html>
